@@ -1,0 +1,31 @@
+{
+    #[function_component(Example)]
+    fn example() -> Html {
+
+        let value = use_state_eq(||"Hello World".to_string());
+
+        let onchange = use_callback(value.clone(), |new_value, value| value.set(new_value));
+        let onreset = use_callback(value.clone(), |_, value| value.set("Got reset".to_string()));
+
+        html!(
+            <Form>
+                <FormGroup
+                    label="Some text value (auto-focus)"
+                    required=true
+                >
+                    <TextInput {onchange} value={(*value).clone()} placeholder="Just enter foo" required=true autofocus=true/>
+                </FormGroup>
+                <FormGroup
+                    label="Text input value (mirrored)"
+                >
+                    <TextInput value={(*value).clone()} disabled=true/>
+                </FormGroup>
+                <ActionGroup>
+                    <Button variant={ButtonVariant::Secondary} label="Reset" onclick={onreset}/>
+                </ActionGroup>
+            </Form>
+        )
+    }
+
+    html!(<Example/>)
+}

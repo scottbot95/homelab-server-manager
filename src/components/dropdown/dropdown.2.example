@@ -1,0 +1,12 @@
+{
+html!(
+    <Dropdown
+        variant={MenuToggleVariant::Plain}
+        icon={Icon::EllipsisV}
+    >
+        <MenuAction>{"Foo"}</MenuAction>
+        <ListDivider/>
+        <MenuAction>{"Bar"}</MenuAction>
+    </Dropdown>
+)
+}

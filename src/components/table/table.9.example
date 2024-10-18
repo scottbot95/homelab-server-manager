@@ -1,0 +1,33 @@
+{
+#[function_component(Example)]
+fn example() -> Html {
+    let entries = use_memo((), |()| {
+        vec![
+            ExampleEntry { foo: "bar".into() },
+            ExampleEntry {
+                foo: "Much, much longer foo".into(),
+            },
+        ]
+    });
+    let (entries, onexpand) = use_table_data(MemoizedTableModel::new(entries));
+
+    let header = html_nested! {
+        <TableHeader<Columns>>
+            <TableColumn<Columns> label="foo" index={Columns::First} width={ColumnWidth::Percent(30)}/>
+            <TableColumn<Columns> label="bar" index={Columns::Second} width={ColumnWidth::Percent(20)}/>
+            <TableColumn<Columns> label="baz" index={Columns::Third} />
+        </TableHeader<Columns>>
+    };
+
+    html!(
+        <Table<Columns, UseTableData<Columns, MemoizedTableModel<ExampleEntry>>>
+            mode={TableMode::CompactExpandable}
+            {header}
+            {entries}
+            {onexpand}
+        />
+    )
+}
+
+html!(<Example/>)
+}

@@ -1,0 +1,44 @@
+{
+
+    let fix = {
+        let toaster = toaster.clone();
+        Callback::from(move |_| toaster.toast("I am not sure another toast can fix this toast ;-)"))
+            .into_action("Try fix!")
+    };
+
+    html! {
+        <>
+            <Button variant={ButtonVariant::Primary} label="Toast" onclick={{
+                let toaster = toaster.clone();
+                Callback::from(move |_|{
+                    toaster.toast("A toast");
+                })
+            }} />
+
+            <Button variant={ButtonVariant::Secondary} label="Toast (5s)" onclick={{
+                let toaster = toaster.clone();
+                Callback::from(move |_|{
+                    toaster.toast(Toast{
+                        title: "A toast that will disappear in 5 seconds".into(),
+                        timeout: Some(Duration::from_secs(5)),
+                        ..Default::default()
+                    });
+                })
+            }} />
+
+            <Button variant={ButtonVariant::Danger} label="Toast (with children)" onclick={Callback::from(move |_|{
+                toaster.toast(Toast{
+                    title: "A toast that will disappear in 5 seconds".into(),
+                    timeout: Some(Duration::from_secs(5)),
+                    r#type: AlertType::Danger,
+                    body: html!{
+                        <p>{"Some explanation of what went wrong..."}</p>
+                    },
+                    actions: vec![
+                        fix.clone()
+                    ],
+                });
+            })} />
+        </>
+    }
+}

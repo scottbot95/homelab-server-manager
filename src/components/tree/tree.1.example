@@ -1,0 +1,77 @@
+{
+    use std::rc::Rc;
+
+    let header = html_nested! {
+        <TreeTableHeader<Columns>>
+            <TableColumn<Columns> index={Columns::First} label="foo" width={ColumnWidth::Percent(40)}/>
+            <TableColumn<Columns> index={Columns::Second} label="L1" width={ColumnWidth::Percent(20)}/>
+            <TableColumn<Columns> index={Columns::Third} label="L2" width={ColumnWidth::Percent(20)}/>
+            <TableColumn<Columns> index={Columns::Fourth} label="L3" width={ColumnWidth::Percent(20)}/>
+        </TreeTableHeader<Columns>>
+    };
+
+    #[derive(PartialEq)]
+    struct Root {
+        root: Rc<Node>,
+    }
+
+    #[derive(PartialEq)]
+    enum Node {
+        Branch(Vec<String>, Vec<Rc<Node>>),
+        Leaf(Vec<String>)
+    }
+
+    impl TreeTableModel<Columns> for Root {
+        fn children(&self) -> Vec<Rc<dyn TreeNode<Columns>>> {
+            self.root.children()
+        }
+    }
+
+    impl TreeNode<Columns> for Node {
+        fn render_cell(&self, context: CellContext<Columns>) -> Cell {
+            let name = match self {
+                Self::Branch(name, _) | Self::Leaf(name) => name,
+            };
+
+            match context.column {
+                Columns::First => Some(name.join(" / ")),
+                Columns::Second => name.first().cloned(),
+                Columns::Third => name.get(1).cloned(),
+                Columns::Fourth => name.get(2).cloned(),
+            }
+                .map(Html::from)
+                .unwrap_or_default()
+                .into()
+        }
+
+        fn children(&self) -> Vec<Rc<dyn TreeNode<Columns>>> {
+            match self {
+                Self::Branch(_, children) => children.iter().map(|c|c.clone() as Rc<dyn TreeNode<Columns>>).collect(),
+                Self::Leaf(_) => vec![],
+            }
+        }
+    }
+
+    let mut root = vec![];
+    for a in ["I", "II", "III"] {
+        let mut folders = vec![];
+        for b in [1,2,3] {
+            let mut leaves = vec![];
+            for c in ["a", "b", "c"] {
+                leaves.push(Rc::new(Node::Leaf(vec![a.to_string(), b.to_string(), c.to_string()])));
+            }
+            folders.push(Rc::new(Node::Branch(vec![a.to_string(), b.to_string()], leaves)));
+        }
+        root.push(Rc::new(Node::Branch(vec![a.to_string()], folders)));
+    }
+
+    let root = Rc::new(Root {root: Rc::new(Node::Branch(vec![], root))});
+
+    html! (
+        <TreeTable<Columns, Root>
+            mode={TreeTableMode::Compact}
+            header={header}
+            model={root}
+        />
+    )
+}

@@ -1,0 +1,25 @@
+html!(
+    <Form>
+        <FormGroup label="Normal">
+            <TextInput/>
+        </FormGroup>
+        <FormGroup label="Success">
+            <TextInput state={InputState::Success}/>
+        </FormGroup>
+        <FormGroup label="Warning">
+            <TextInput state={InputState::Warning}/>
+        </FormGroup>
+        <FormGroup label="Error">
+            <TextInput state={InputState::Error}/>
+        </FormGroup>
+        <FormGroup label="Read Only">
+            <TextInput readonly=true/>
+        </FormGroup>
+        <FormGroup label="Disabled">
+            <TextInput disabled=true/>
+        </FormGroup>
+        <FormGroup label="Search">
+            <TextInput icon={Icon::Search}/>
+        </FormGroup>
+    </Form>
+)

@@ -1,0 +1,31 @@
+{
+    let header = html_nested! {
+        <TableHeader<Columns>>
+            <TableColumn<Columns> label="foo" index={Columns::First} />
+            <TableColumn<Columns> label="bar" index={Columns::Second} />
+            <TableColumn<Columns> label="baz" index={Columns::Third} />
+        </TableHeader<Columns>>
+    };
+
+    html!(
+        <>
+            <Toolbar>
+                <ToolbarContent>
+                    <ToolbarItem>
+                        <Button label="Prepend entry" icon={Icon::PlusCircle} align={Align::Start} variant={ButtonVariant::Link} onclick={onprepend.clone()}/>
+                        <Button label="Append entry" icon={Icon::PlusCircle} align={Align::Start} variant={ButtonVariant::Link} onclick={onappend.clone()}/>
+                        <Button label="Pop entry" icon={Icon::MinusCircle} align={Align::Start} variant={ButtonVariant::Link} onclick={onpopentry.clone()}/>
+                    </ToolbarItem>
+                </ToolbarContent>
+            </Toolbar>
+
+            <Table<Columns, UseTableData<Columns, UseStateTableModel<ExampleEntry>>>
+                mode={TableMode::CompactExpandable}
+                {header}
+                entries={model4.clone()}
+                onexpand={onexpand.clone()}
+            />
+
+        </>
+    )
+}

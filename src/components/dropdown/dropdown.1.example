@@ -1,0 +1,13 @@
+{
+html!(
+    <Dropdown
+        text="Foo"
+    >
+        <MenuAction onclick={show_toast.reform(|_|"Clicked Foo")}>{"Foo"}</MenuAction>
+        <ListDivider/>
+        <MenuAction icon={Icon::Cubes} onclick={show_toast.reform(|_|"Clicked Bar")}>{"Bar"}</MenuAction>
+        <ListDivider/>
+        <MenuLink href="https://patternfly.org" target="_blank">{"PatternFly "} {Icon::ExternalLinkAlt}</MenuLink>
+    </Dropdown>
+)
+}

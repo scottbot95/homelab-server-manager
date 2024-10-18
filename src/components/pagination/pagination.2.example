@@ -1,0 +1,112 @@
+{
+
+use patternfly_yew::prelude::*;
+
+const INIT_TOTAL: usize = 394;
+
+#[function_component(Example)]
+fn example() -> Html {
+
+    // the total number of items to simulate
+    let total = use_state_eq(|| Some(INIT_TOTAL));
+
+    // state for managing the "total" value
+    let total_input = use_state_eq(|| Some(INIT_TOTAL));
+    let total_text = use_state_eq(|| INIT_TOTAL.to_string());
+    let total_state = use_state_eq(|| InputState::Default);
+
+    // when the text changes, parse to a usize and remember the result
+    {
+        let total_state = total_state.clone();
+        let total_input = total_input.clone();
+        use_effect_with((*total_text).clone(), move |text|{
+            match text.parse::<usize>() {
+                Ok(total) => {
+                    total_state.set(InputState::Default);
+                    total_input.set(Some(total));
+                }
+                Err(_) => {
+                    total_state.set(InputState::Error);
+                    total_input.set(None);
+                }
+            }
+        });
+    }
+
+    let ontext = use_callback(total_text.clone(), |new_text, text| text.set(new_text));
+    let onset = use_callback((total.clone(), total_input.clone()), |(), (total, total_input)| total.set(**total_input));
+
+    let pagination = use_pagination(*total, Default::default);
+
+    let entries = use_memo(pagination.state.clone(), |state| {
+        let mut range = state.range();
+        if let Some(total) = state.total {
+            range.end = range.end.clamp(0, total);
+        }
+        range.into_iter().map(ExampleEntry).collect::<Vec<_>>()
+    });
+
+    let (entries, _) = use_table_data(MemoizedTableModel::new(entries));
+
+    let header = html_nested! {
+        <TableHeader<Columns>>
+            <TableColumn<Columns> label="#" index={Columns::ItemNumber} />
+            <TableColumn<Columns> label="Decimal" index={Columns::Decimal} />
+            <TableColumn<Columns> label="Hex" index={Columns::Hex} />
+        </TableHeader<Columns>>
+    };
+
+    html! (
+        <>
+            <Toolbar>
+                <ToolbarContent>
+                    <ToolbarItem r#type={ToolbarItemType::SearchFilter}>
+                        <Form onsubmit={onset.reform(|_|())}>
+                            // needed to trigger submit when pressing enter in the search field
+                            <input type="submit" hidden=true formmethod="dialog" />
+                            <InputGroup>
+                                <TextInputGroup>
+                                    <TextInput
+                                        placeholder="Total number of items"
+                                        value={(*total_text).clone()}
+                                        state={*total_state}
+                                        onchange={ontext}
+                                    />
+                                </TextInputGroup>
+                                <InputGroupItem>
+                                    <Button
+                                        disabled={*total_state == InputState::Error}
+                                        icon={Icon::ArrowRight}
+                                        variant={ButtonVariant::Control}
+                                        onclick={onset.reform(|_|())}
+                                    />
+                                </InputGroupItem>
+                            </InputGroup>
+                        </Form>
+                    </ToolbarItem>
+                    <ToolbarItem r#type={ToolbarItemType::Pagination}>
+                        <SimplePagination
+                            pagination={pagination.clone()}
+                            total={*total}
+                        />
+                    </ToolbarItem>
+                </ToolbarContent>
+            </Toolbar>
+
+            <Table<Columns, UseTableData<Columns, MemoizedTableModel<ExampleEntry>>>
+                mode={TableMode::Compact}
+                {header}
+                {entries}
+            />
+
+            <SimplePagination
+                {pagination}
+                total={*total}
+                position={PaginationPosition::Bottom}
+            />
+        </>
+    )
+}
+
+html!(<Example/>)
+}

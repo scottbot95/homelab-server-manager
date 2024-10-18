@@ -1,0 +1,5 @@
+html! {
+    <TextInputGroup disabled=true>
+        <TextInputGroupMain disabled=true value="Disabled" />
+    </TextInputGroup>
+}

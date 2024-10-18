@@ -1,0 +1,52 @@
+[package]
+name = "patternfly-yew-quickstart"
+version = "0.6.0"
+authors = ["Jens Reimann <jreimann@redhat.com>"]
+edition = "2021"
+license = "Apache-2.0"
+readme = "README.md"
+description = "A quickstart project for using PatternFly with Yew"
+repository = "https://github.com/ctron/patternfly-yew-quickstart"
+
+[dependencies]
+browser-panic-hook = "0.2"
+chrono = { version = "0.4.30", default-features = false, features = ["wasmbind"] }
+gloo-utils = "0.2"
+log = "0.4"
+patternfly-yew = { version = "0.6.1", features = ["tree", "icons-fab"] }
+popper-rs = { version = "0.3.2", features = ["yew", "debug"] }
+serde_json = "1"
+strum = { version = "0.26", features = ["derive"] }
+url = "2"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+wasm-logger = "0.2"
+yew = { version = "0.21", features = ["csr"] }
+yew-hooks = "0.3"
+yew-more-hooks = { version = "0.3.3", features = ["yew-hooks"] }
+yew-nested-router = "0.7.0"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "HtmlElement",
+    "HtmlInputElement",
+    "MediaQueryList"
+]
+
+[patch.crates-io]
+#patternfly-yew = { path = "../patternfly-yew" }
+#patternfly-yew = { git = "https://github.com/patternfly-yew/patternfly-yew", rev = "00b862fd1c72a98229b8c56cf13f9009992cf70c" } # FIXME: awaiting release
+#yew-nested-router = { path = "../yew-nested-router" }
+#yew-more-hooks = { git = "https://github.com/ctron/yew-more-hooks", rev = "f535bb2e7b227aac7010035215c11d4aeae6cb62" } # FIXME: awaiting release
+#yew-more-hooks = { path = "../yew-more-hooks" }
+#popper-rs = { git = "https://github.com/ctron/popper-rs", rev = "68c088c1f1709a4789abb09848c7360ff02ba3dc" }
+#popper-rs = { path = "../popper-rs" }
+#yew-hooks = { git = "https://github.com/ctron/yew-hooks", rev = "0ba4f5c5f331650b1608ad830dfac0ef63700e8d" } # FIXME: awaiting release
+
+# release profile settings to reduce the final binary size
+[profile.release]
+panic = 'abort'
+codegen-units = 1
+opt-level = 's'
+lto = true
