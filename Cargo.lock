@@ -665,6 +665,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d231dfb89cfffdbc30e7fc41579ed6066ad03abda9e567ccafae602b97ec5024"
 
 [[package]]
+name = "homelab-server-manager"
+version = "0.1.0"
+dependencies = [
+ "browser-panic-hook",
+ "chrono",
+ "gloo-utils 0.2.0",
+ "log",
+ "patternfly-yew",
+ "popper-rs",
+ "serde_json",
+ "strum",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-logger",
+ "web-sys",
+ "yew",
+ "yew-hooks",
+ "yew-more-hooks",
+ "yew-nested-router",
+]
+
+[[package]]
 name = "http"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -844,29 +867,6 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "web-tools",
- "yew",
- "yew-hooks",
- "yew-more-hooks",
- "yew-nested-router",
-]
-
-[[package]]
-name = "patternfly-yew-quickstart"
-version = "0.6.0"
-dependencies = [
- "browser-panic-hook",
- "chrono",
- "gloo-utils 0.2.0",
- "log",
- "patternfly-yew",
- "popper-rs",
- "serde_json",
- "strum",
- "url",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "wasm-logger",
- "web-sys",
  "yew",
  "yew-hooks",
  "yew-more-hooks",
