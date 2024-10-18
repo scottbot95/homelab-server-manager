@@ -1,6 +1,0 @@
-html!{
-    <>
-    <p><Switch/></p>
-    <p><Switch checked=true/></p>
-    </>
-}

@@ -1,7 +1,0 @@
-html!{
-    <Flex>
-        <FlexItem><LayoutItem>{"Flex item #1"}</LayoutItem></FlexItem>
-        <FlexItem><LayoutItem>{"Flex item #2"}</LayoutItem></FlexItem>
-        <FlexItem><LayoutItem>{"Flex item #3"}</LayoutItem></FlexItem>
-    </Flex>
-}

@@ -1,3 +1,0 @@
-html!{
-    <Clipboard readonly=true variant={ClipboardVariant::Expanded} value="Foo bar"/>
-}

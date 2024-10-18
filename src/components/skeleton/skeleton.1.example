@@ -1,3 +1,0 @@
-html!(
-    <Skeleton screenreader_text="Loading contents" />
-)

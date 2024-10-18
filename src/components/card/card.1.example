@@ -1,7 +1,0 @@
-html! {
-    <Card>
-        <CardTitle>{"Title"}</CardTitle>
-        <CardBody>{"Body"}</CardBody>
-        <CardFooter>{"Footer"}</CardFooter>
-    </Card>
-}

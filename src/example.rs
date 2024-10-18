@@ -1,29 +1,6 @@
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
 
-/// Include an example from an external file.
-///
-/// ```rust
-/// # use yew::prelude::*;
-/// fn example() -> Html {
-///     let example1 = example!{ "Example" => "file.example" };
-///     html!{
-///         <div>{example1}</div>
-///     }
-/// }
-/// ```
-#[macro_export]
-macro_rules! example {
-    ($title:expr => $file:expr) => {{
-
-        html! {
-            <>
-                <$crate::example::Example title={$title} code={include_str!($file)}>{{include!($file)}}</$crate::example::Example>
-            </>
-        }
-    }};
-}
-
 #[derive(Clone, Debug, Properties, PartialEq)]
 pub struct Props {
     pub title: AttrValue,
@@ -84,46 +61,4 @@ pub struct ExampleProps {
     pub title: String,
     pub children: Children,
     pub code: String,
-}
-
-#[function_component(Example)]
-pub fn example(props: &ExampleProps) -> Html {
-    html!(
-        <Flex modifiers={[FlexModifier::Column]}>
-
-            <FlexItem>
-                <Title level={Level::H2} size={Size::XXLarge}>
-                    { props.title.clone() }
-                </Title>
-            </FlexItem>
-
-            <Flex>
-
-                <FlexItem modifiers={[FlexModifier::Flex1]}>
-                    <Title level={Level::H3} size={Size::Large}>{"Example"}</Title>
-                    <Card flat=true>
-                        <CardBody>
-                            { for props.children.iter() }
-                        </CardBody>
-                    </Card>
-                </FlexItem>
-
-                <FlexItem modifiers={[FlexModifier::Flex1]}>
-                    <Title level={Level::H3} size={Size::Large}>{"Code"}</Title>
-
-                    <div class="pf-v5-c-code-editor">
-                        <div class="pf-v5-c-code-editor__main">
-                            <div class="pf-v5-c-code-editor__code">
-                                <pre class="pf-v5-c-code-editor__code-pre">
-                                    {&props.code}
-                                </pre>
-                            </div>
-                        </div>
-                    </div>
-
-                </FlexItem>
-            </Flex>
-
-        </Flex>
-    )
 }

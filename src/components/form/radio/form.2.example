@@ -1,5 +1,0 @@
-html!(
-    <>
-        <Radio reversed=true>{"Foo"}</Radio>
-    </>
-)

@@ -1,9 +1,0 @@
-html!{
-    <>
-        <List r#type={ListType::Bordered}>
-            <ListItem>{"First"}</ListItem>
-            <ListItem>{"Second"}</ListItem>
-            <ListItem>{"Third"}</ListItem>
-        </List>
-    </>
-}

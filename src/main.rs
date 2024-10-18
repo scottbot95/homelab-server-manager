@@ -4,11 +4,9 @@ mod app;
 mod components;
 mod counter;
 mod example;
-mod full;
 mod hook;
 mod icons;
 mod index;
-mod layouts;
 mod panic;
 
 use browser_panic_hook::{CustomBody, IntoPanicHook};

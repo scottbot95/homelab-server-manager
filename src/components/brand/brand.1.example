@@ -1,3 +1,0 @@
-html!(
-    <Brand src="assets/images/pf_logo.svg" alt="PatternFly logo" />
-)

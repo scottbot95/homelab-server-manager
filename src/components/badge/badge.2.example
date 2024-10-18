@@ -1,8 +1,0 @@
-html!{
-    <>
-        <Badge screen_reader_text="Unread Messages">{"7"}</Badge>
-        <Badge screen_reader_text="Unread Messages">{"24"}</Badge>
-        <Badge read=false screen_reader_text="Unread Messages">{"240"}</Badge>
-        <Badge read=false screen_reader_text="Unread Messages">{"999+"}</Badge>
-    </>
-}
