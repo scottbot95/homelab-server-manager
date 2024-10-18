@@ -4,7 +4,7 @@
 
 # Webpack & Node
 
-/node_modules/
+node_modules/
 /pkg
 /dist/
 
