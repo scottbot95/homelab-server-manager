@@ -1,3 +1,5 @@
+pub mod games;
+
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
 
@@ -12,7 +14,7 @@ pub struct Props {
     pub children: Children,
 }
 
-#[function_component(ExamplePage)]
+#[function_component(MyPage)]
 pub fn example_page(props: &Props) -> Html {
     html! (
         <PageSectionGroup>
@@ -54,11 +56,4 @@ exist.
             })}
         </PageSectionGroup>
     )
-}
-
-#[derive(Clone, Debug, Properties, PartialEq)]
-pub struct ExampleProps {
-    pub title: String,
-    pub children: Children,
-    pub code: String,
 }

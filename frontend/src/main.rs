@@ -2,12 +2,8 @@
 
 mod app;
 mod components;
-mod counter;
-mod example;
+mod pages;
 mod hook;
-mod icons;
-mod index;
-mod panic;
 
 use browser_panic_hook::{CustomBody, IntoPanicHook};
 use wasm_bindgen::prelude::*;
