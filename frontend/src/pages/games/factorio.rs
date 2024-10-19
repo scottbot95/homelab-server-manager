@@ -1,27 +1,33 @@
+use std::rc::Rc;
 use patternfly_yew::prelude::*;
 use crate::pages::MyPage;
 
 use yew::prelude::*;
+use models::status::{HealthStatus, ServerStatus};
+use crate::components::ServerStatusCard;
 
 #[function_component(Factorio)]
 pub fn factorio() -> Html {
-    html! {
-        <>
-            <MyPage title="Factorio">
-                <Flex>
+    let servers = &[
+        Rc::new(ServerStatus {
+            name: "Space Age".to_owned(),
+            health: HealthStatus::Unknown,
+        })
+    ];
+    let result = html! {
+        <MyPage title="Factorio">
+            <Flex>
+                {for servers.iter().map(|status| html_nested!{
                     <FlexItem>
-                        <Card>
-                            <CardTitle>{"Space Age"}</CardTitle>
-                            <CardBody>
-                                <DescriptionList mode={[DescriptionListMode::Horizontal]}>
-                                    <DescriptionGroup term="Status">{"Unknown"}</DescriptionGroup>
-                                </DescriptionList>
-                            </CardBody>
-                        </Card>
+                        <ServerStatusCard {status} />
                     </FlexItem>
-                </Flex>
+                })}
+            </Flex>
 
-            </MyPage>
-        </>
-    }
+        </MyPage>
+    };
+
+
+
+    result
 }
