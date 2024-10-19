@@ -6,6 +6,9 @@ edition = "2021"
 [dependencies]
 models.path = "../models"
 
+serde.workspace = true
+serde_json.workspace = true
+
 actix-web = "4"
 env_logger = "0.11"
 log = "0.4"

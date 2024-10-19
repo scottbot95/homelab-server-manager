@@ -670,6 +670,7 @@ dependencies = [
  "models",
  "patternfly-yew",
  "popper-rs",
+ "serde",
  "serde_json",
  "strum",
  "url",
@@ -1448,6 +1449,9 @@ dependencies = [
 [[package]]
 name = "models"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "num-conv"
@@ -1912,6 +1916,8 @@ dependencies = [
  "env_logger",
  "log",
  "models",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

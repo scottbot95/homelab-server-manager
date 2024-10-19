@@ -5,3 +5,7 @@ members = [
     "models",
     "server"
 ]
+
+[workspace.dependencies]
+serde = "1"
+serde_json = "1"
