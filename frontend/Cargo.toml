@@ -34,19 +34,9 @@ features = [
     "MediaQueryList"
 ]
 
-[patch.crates-io]
-#patternfly-yew = { path = "../patternfly-yew" }
-#patternfly-yew = { git = "https://github.com/patternfly-yew/patternfly-yew", rev = "00b862fd1c72a98229b8c56cf13f9009992cf70c" } # FIXME: awaiting release
-#yew-nested-router = { path = "../yew-nested-router" }
-#yew-more-hooks = { git = "https://github.com/ctron/yew-more-hooks", rev = "f535bb2e7b227aac7010035215c11d4aeae6cb62" } # FIXME: awaiting release
-#yew-more-hooks = { path = "../yew-more-hooks" }
-#popper-rs = { git = "https://github.com/ctron/popper-rs", rev = "68c088c1f1709a4789abb09848c7360ff02ba3dc" }
-#popper-rs = { path = "../popper-rs" }
-#yew-hooks = { git = "https://github.com/ctron/yew-hooks", rev = "0ba4f5c5f331650b1608ad830dfac0ef63700e8d" } # FIXME: awaiting release
-
 # release profile settings to reduce the final binary size
-[profile.release]
-panic = 'abort'
-codegen-units = 1
-opt-level = 's'
-lto = true
+#[profile.release]
+#panic = 'abort'
+#codegen-units = 1
+#opt-level = 's'
+#lto = true

@@ -9,3 +9,12 @@ members = [
 [workspace.dependencies]
 serde = "1"
 serde_json = "1"
+
+# release profile settings to reduce the final binary size
+[profile.release]
+lto = true
+
+[profile.release.package.frontend]
+codegen-units = 1
+opt-level = 's'
+
