@@ -7,10 +7,6 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.2",
-    "@patternfly/patternfly": "^5.3.0",
-    "sass": "^1.80.2"
-  },
-  "//dependencies": {
-    "@fortawesome/fontawesome-free": "Only required if you are enabling the icons-fab or icons-far feature"
+    "@patternfly/patternfly": "^5.3.0"
   }
 }
