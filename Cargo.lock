@@ -352,6 +352,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "common"
+version = "0.0.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "console_error_panic_hook"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -558,9 +565,9 @@ version = "0.0.0"
 dependencies = [
  "browser-panic-hook",
  "chrono",
+ "common",
  "gloo-utils 0.2.0",
  "log",
- "models",
  "patternfly-yew",
  "popper-rs",
  "serde",
@@ -1476,13 +1483,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "models"
-version = "0.0.0"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "native-tls"
 version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2244,9 +2244,9 @@ dependencies = [
  "async-session",
  "axum",
  "axum-extra",
+ "common",
  "headers",
  "http 1.2.0",
- "models",
  "oauth2",
  "once_cell",
  "reqwest",

@@ -3,7 +3,7 @@ use patternfly_yew::prelude::*;
 use crate::pages::MyPage;
 
 use yew::prelude::*;
-use models::status::{HealthStatus, ServerStatus};
+use common::status::{HealthStatus, ServerStatus};
 use crate::components::ServerStatusCard;
 
 #[function_component(Factorio)]

@@ -2,7 +2,7 @@ use std::rc::Rc;
 use std::string::ToString;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
-use models::status::{HealthStatus, ServerStatus};
+use common::status::{HealthStatus, ServerStatus};
 
 #[derive(Properties, PartialEq)]
 pub struct HealthIndicatorProps {

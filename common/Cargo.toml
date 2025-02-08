@@ -1,5 +1,5 @@
 [package]
-name = "models"
+name = "common"
 edition = "2021"
 
 [dependencies]
