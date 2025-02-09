@@ -1,24 +1,27 @@
 use anyhow::Context;
-use async_session::{MemoryStore, SessionStore};
-use axum::extract::State;
 use axum::response::{IntoResponse, Redirect};
 use axum::Router;
 use axum::routing::get;
-use axum_extra::extract::CookieJar;
+use tower_sessions::{Expiry, MemoryStore, Session, SessionManagerLayer};
+use tower_sessions::cookie::SameSite;
+use tower_sessions::cookie::time::Duration;
 use crate::{AppError, AppState, User};
-use crate::auth::COOKIE_NAME;
 use crate::routes::auth::make_auth_router;
 
 mod auth;
 
-pub fn make_router() -> Router {
+pub fn make_router(secure: bool) -> Router {
     // `MemoryStore` is just used as an example. Don't use this in production.
-    let store = MemoryStore::new();
     let oauth_client = crate::auth::oauth_client().unwrap();
     let app_state = AppState {
-        store,
         oauth_client,
     };
+
+    let session_store = MemoryStore::default();
+    let session_layer = SessionManagerLayer::new(session_store)
+        .with_secure(secure)
+        .with_same_site(SameSite::Lax)
+        .with_expiry(Expiry::OnInactivity(Duration::seconds(30)));
 
     Router::new()
         .route("/", get(index))
@@ -26,6 +29,7 @@ pub fn make_router() -> Router {
         .route("/logout", get(logout))
         .nest("/auth", make_auth_router())
         .with_state(app_state)
+        .layer(session_layer)
 }
 
 // Session is optional
@@ -40,34 +44,15 @@ async fn index(user: Option<User>) -> impl IntoResponse {
 }
 
 async fn protected(user: User) -> impl IntoResponse {
-    format!("Welcome to the protected area :)\nHere's your info:\n{user:?}")
+    format!("Welcome to the protected area :)\nHere's your info:\n{:?}", &*user)
 }
 
 pub async fn logout(
-    State(store): State<MemoryStore>,
-    cookie_jar: CookieJar,
+    session: Session,
 ) -> anyhow::Result<impl IntoResponse, AppError> {
-    let cookie = cookie_jar
-        .get(COOKIE_NAME)
-        .context("unexpected error getting cookie name")?;
-
-    let session = match store
-        .load_session(cookie.to_string())
-        .await
-        .context("failed to load session")?
-    {
-        Some(s) => s,
-        // No session active, just redirect
-        None => return Ok((cookie_jar, Redirect::to("/"))),
-    };
-
-    store
-        .destroy_session(session)
+    session.delete()
         .await
         .context("failed to destroy session")?;
     
-    Ok((
-        cookie_jar.remove(COOKIE_NAME),
-        Redirect::to("/")
-    ))
+    Ok(Redirect::to("/"))
 }

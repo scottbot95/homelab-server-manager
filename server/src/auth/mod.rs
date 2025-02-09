@@ -7,8 +7,6 @@ use axum::extract::FromRef;
 use anyhow::Context;
 use crate::{AppError, AppState};
 
-
-pub static COOKIE_NAME: &str = "SESSION";
 pub static CSRF_TOKEN: &str = "csrf_token";
 
 pub type OAuthClient = oauth2::Client<
@@ -35,7 +33,7 @@ pub fn oauth_client() -> anyhow::Result<OAuthClient, AppError> {
     let client_secret = env::var("DISCORD_CLIENT_SECRET").context("Missing CLIENT_SECRET!")?;
     let host_url = env::var("HOST_URL")
         .unwrap_or_else(|_| "http://localhost:9000".to_string());
-    let redirect_url = format!("{}/api/oauth/discord-callback", host_url);
+    let redirect_url = format!("{}/auth/discord/authorize", host_url);
 
     let auth_url = env::var("AUTH_URL").unwrap_or_else(|_| {
         "https://discord.com/api/oauth2/authorize".to_string()
