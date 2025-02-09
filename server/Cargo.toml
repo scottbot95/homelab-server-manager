@@ -15,7 +15,7 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 async-session = "3.0.0"
 anyhow = "1.0.95"
 axum = "0.8.1"
-axum-extra = { version = "0.10.0", features = ["typed-header"] }
+axum-extra = { version = "0.10.0", features = ["cookie", "typed-header"] }
 http = "1.2.0"
 headers = "0.4.0"
 tokio = { version = "1.43.0", features = ["full"] }
