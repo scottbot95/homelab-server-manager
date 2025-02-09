@@ -2,9 +2,12 @@ use patternfly_yew::prelude::*;
 use yew::prelude::*;
 use yew_nested_router::prelude::{Switch as RouterSwitch, *};
 use yew_nested_router::Target;
+use crate::app::user_actions::UserActions;
 use crate::pages::games::Factorio;
 
 mod about;
+mod user_actions;
+mod state;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Target)]
 pub enum AppRoute {
@@ -107,6 +110,9 @@ fn page(props: &PageProps) -> Html {
                         >
                             <MenuAction onclick={onabout}>{"About"}</MenuAction>
                         </Dropdown>
+                    </ToolbarItem>
+                    <ToolbarItem>
+                        <UserActions />
                     </ToolbarItem>
                 </ToolbarGroup>
             </ToolbarContent>

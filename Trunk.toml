@@ -3,7 +3,8 @@ trunk-version = ">=0.20.1"
 
 [build]
 target = "frontend/index.html"
+public_url = "/assets/"
 
 [[proxy]]
 backend = "http://localhost:9000/"
-rewrite = "/api/"
+rewrite = "/"

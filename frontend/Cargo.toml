@@ -11,6 +11,7 @@ serde_json.workspace = true
 
 browser-panic-hook = "0.2"
 chrono = { version = "0.4.30", default-features = false, features = ["wasmbind"] }
+gloo-net = "0.6.0"
 gloo-utils = "0.2"
 log = "0.4"
 patternfly-yew = { version = "0.6.1", features = ["tree", "icons-fab"] }
@@ -24,6 +25,7 @@ yew = { version = "0.21", features = ["csr"] }
 yew-hooks = "0.3"
 yew-more-hooks = { version = "0.3.3", features = ["yew-hooks"] }
 yew-nested-router = "0.7.0"
+yewdux = "0.10.0"
 
 [dependencies.web-sys]
 version = "0.3"

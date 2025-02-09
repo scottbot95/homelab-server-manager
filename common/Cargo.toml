@@ -3,4 +3,5 @@ name = "common"
 edition = "2021"
 
 [dependencies]
+smol_str.workspace = true
 serde = { version = "1.0.210", features = ["derive"] }

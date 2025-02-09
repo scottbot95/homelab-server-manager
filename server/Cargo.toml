@@ -18,5 +18,6 @@ axum-extra = { version = "0.10.0", features = ["cookie", "typed-header"] }
 http = "1.2.0"
 headers = "0.4.0"
 tokio = { version = "1.43.0", features = ["full"] }
+tower-http = { version = "0.6.2", features = ["full"] }
 tower-sessions = "0.14.0"
 reqwest = { version = "0.12.12", features = ["json"] }
