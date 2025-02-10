@@ -5,8 +5,7 @@ use oauth2::{AuthUrl, ClientId, ClientSecret, EndpointNotSet, EndpointSet, Redir
 use std::env;
 use axum::extract::FromRef;
 use anyhow::Context;
-use smol_str::SmolStr;
-use common::discord::UserId;
+use common::discord::{RoleId, UserId};
 use crate::{AppError, AppState};
 
 pub static CSRF_TOKEN: &str = "csrf_token";
@@ -86,8 +85,7 @@ pub struct DiscordUserData {
 /// https://discord.com/developers/docs/resources/guild#guild-member-object
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GuildMember {
-    // pub id: SmolStr,
-    // pub user: DiscordUserData,
-    // pub nick: Option<String>,
-    pub roles: Vec<SmolStr>
+    pub user: DiscordUserData,
+    pub nick: Option<String>,
+    pub roles: Vec<RoleId>
 }

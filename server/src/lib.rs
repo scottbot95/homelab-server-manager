@@ -11,34 +11,83 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use axum::response::{IntoResponse, Response};
 use oauth2::basic::BasicTokenResponse;
-use tower_sessions::Session;
+use tokio::signal;
+use tokio::task::AbortHandle;
+use tower_sessions::{ExpiredDeletion, Session};
+use tower_sessions_sqlx_store::SqliteStore;
+use tower_sessions_sqlx_store::sqlx::SqlitePool;
 use auth::DiscordUserData;
-use crate::auth::{AuthRedirect, OAuthClient};
+use crate::auth::OAuthClient;
 use crate::routes::make_router;
 use crate::servers::ServerManager;
 
-pub async fn run_server() {
-    let app = make_router(false);
+pub async fn run_server() -> Result<(), AppError> {
+    // let session_store = MemoryStore::default();
+    let pool = SqlitePool::connect("sqlite:sessions.db?mode=rwc").await?;
+    let session_store = SqliteStore::new(pool);
+    session_store.migrate()
+        .await
+        .context("Failed to migrate session store")?;
+
+    let deletion_task = tokio::task::spawn(
+        session_store.clone()
+            .continuously_delete_expired(tokio::time::Duration::from_secs(10))
+    );
+
+    let app = make_router(false, session_store).await?;
 
     let listener = tokio::net::TcpListener::bind("localhost:9000")
         .await
-        .context("failed to bind TcpListener")
-        .unwrap();
+        .context("failed to bind TcpListener")?;
 
     tracing::debug!(
         "listening on {}",
         listener
             .local_addr()
-            .context("failed to return local address")
-            .unwrap()
+            .context("failed to return local address")?
     );
 
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal(deletion_task.abort_handle()))
+        .await?;
+
+    match deletion_task.await {
+        Ok(res) => res?,
+        // task being cancelled is expected, don't count as a real error
+        Err(err) if err.is_cancelled() => {},
+        Err(err) => Err(err)?,
+    }
+
+    Ok(())
+}
+
+async fn shutdown_signal(deletion_task_abort_handle: AbortHandle) {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => { deletion_task_abort_handle.abort() },
+        _ = terminate => { deletion_task_abort_handle.abort() },
+    }
 }
 
 
 #[derive(Debug)]
-struct AppError(anyhow::Error);
+pub struct AppError(anyhow::Error);
 
 // Tell axum how to convert `AppError` into a response.
 impl IntoResponse for AppError {

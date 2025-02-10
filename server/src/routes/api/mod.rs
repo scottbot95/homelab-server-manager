@@ -1,6 +1,5 @@
 mod servers;
 
-use anyhow::Context;
 use axum::response::IntoResponse;
 use axum::{Json, Router};
 use axum::routing::get;

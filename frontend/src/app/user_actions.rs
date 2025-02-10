@@ -28,8 +28,10 @@ pub fn user_actions() -> Html {
 
             let user_data = resp.json::<Option<UserData>>().await;
             match user_data {
+                #[allow(unused_variables)]
                 Ok(user_data) => {
                     // user dispatcher directly so we don't re-render for all state changes
+                    #[cfg(target_arch = "wasm32")]
                     Dispatch::<AppState>::global()
                         .apply(AppAction::UpdateUser(user_data.into()));
                     loading.set(false);

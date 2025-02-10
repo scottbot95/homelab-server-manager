@@ -6,7 +6,7 @@ use axum::routing::get;
 use reqwest::Client;
 use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
-use tower_sessions::{Expiry, MemoryStore, Session, SessionManagerLayer};
+use tower_sessions::{Expiry, Session, SessionManagerLayer, SessionStore};
 use tower_sessions::cookie::SameSite;
 use tower_sessions::cookie::time::Duration;
 use crate::{AppError, AppState, User};
@@ -17,15 +17,14 @@ use crate::servers::ServerManager;
 mod auth;
 mod api;
 
-pub fn make_router(secure: bool) -> Router {
+pub async fn make_router<Store: SessionStore + Clone>(secure: bool, session_store: Store) -> Result<Router, AppError> {
     // `MemoryStore` is just used as an example. Don't use this in production.
-    let oauth_client = crate::auth::oauth_client().unwrap();
+    let oauth_client = crate::auth::oauth_client()?;
     let app_state = AppState {
         oauth_client,
         server_manager: ServerManager::new(Client::new()),
     };
-
-    let session_store = MemoryStore::default();
+    
     let session_layer = SessionManagerLayer::new(session_store)
         .with_secure(secure)
         .with_same_site(SameSite::Lax)
@@ -33,7 +32,7 @@ pub fn make_router(secure: bool) -> Router {
 
     let static_dir = Path::new("./dist");
 
-    Router::new()
+    Ok(Router::new()
         // .route("/", get(index))
         .route("/protected", get(protected))
         .route("/logout", get(logout))
@@ -43,7 +42,7 @@ pub fn make_router(secure: bool) -> Router {
         .fallback_service(ServeFile::new(static_dir.join("index.html")))
         .with_state(app_state)
         .layer(session_layer)
-        .layer(TraceLayer::new_for_http())
+        .layer(TraceLayer::new_for_http()))
 }
 
 async fn protected(user: User) -> impl IntoResponse {

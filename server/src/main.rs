@@ -10,10 +10,10 @@
 
 
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use server::run_server;
+use server::{run_server, AppError};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), AppError> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -25,5 +25,7 @@ async fn main() {
         )
         .init();
 
-    run_server().await;
+    run_server().await?;
+    
+    Ok(())
 }

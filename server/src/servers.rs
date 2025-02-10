@@ -1,6 +1,4 @@
 use std::collections::HashSet;
-use std::num::NonZeroU64;
-use std::str::FromStr;
 use anyhow::Context;
 use axum::extract::FromRef;
 use oauth2::TokenResponse;
@@ -57,13 +55,13 @@ impl ServerManager {
             .await
             .context("failed in sending request to target Url")?;
 
-        let guild_member = resp
-            .json::<GuildMember>()
-            .await
+        let body = resp.text().await?;
+        tracing::trace!("Discord response: {}", body);
+
+        let guild_member = serde_json::from_str::<GuildMember>(&body)
             .context("failed to deserialize response as JSON")?;
 
         let roles = guild_member.roles.into_iter()
-            .filter_map(|s| NonZeroU64::from_str(&s).map(From::from).ok())
             .collect();
         self.get_servers(roles).await
     }
