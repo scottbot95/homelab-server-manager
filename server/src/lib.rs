@@ -1,5 +1,6 @@
 mod auth;
 mod routes;
+mod servers;
 
 use axum::extract::{FromRequestParts, OptionalFromRequestParts};
 use http::request::Parts;
@@ -9,9 +10,12 @@ use std::ops::Deref;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use axum::response::{IntoResponse, Response};
+use oauth2::basic::BasicTokenResponse;
 use tower_sessions::Session;
+use auth::DiscordUserData;
 use crate::auth::{AuthRedirect, OAuthClient};
 use crate::routes::make_router;
+use crate::servers::ServerManager;
 
 pub async fn run_server() {
     let app = make_router(false);
@@ -39,7 +43,7 @@ struct AppError(anyhow::Error);
 // Tell axum how to convert `AppError` into a response.
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        tracing::error!("Application error: {:#}", self.0);
+        tracing::error!("Application error: {}", self.0);
 
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -62,16 +66,13 @@ where
 #[derive(Clone)]
 struct AppState {
     oauth_client: OAuthClient,
+    server_manager: ServerManager,
 }
 
-// The user data we'll get back from Discord.
-// https://discord.com/developers/docs/resources/user#user-object-user-structure
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserData {
-    pub id: String,
-    pub avatar: Option<String>,
-    pub username: String,
-    pub discriminator: String,
+    pub discord_user: DiscordUserData,
+    pub tokens: BasicTokenResponse,
 }
 
 pub struct User {
@@ -81,6 +82,10 @@ pub struct User {
 
 impl User {
     const USER_DATA_KEY: &'static str = "user";
+
+    pub fn username(&self) -> &str {
+        &self.user_data.discord_user.username
+    }
 
     async fn update_session(session: &Session, data: &UserData) -> Result<(), AppError> {
         session
@@ -114,7 +119,7 @@ where
             .get::<UserData>(Self::USER_DATA_KEY)
             .await
             .expect("Failed to read session")
-            .ok_or_else(|| AuthRedirect.into_response())?;
+            .ok_or_else(|| StatusCode::UNAUTHORIZED.into_response())?;
 
         // Uncomment if we add something like a last seen time
         // Self::update_session(&session, &user_data)

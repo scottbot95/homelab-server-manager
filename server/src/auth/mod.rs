@@ -1,10 +1,12 @@
 use axum::response::{IntoResponse, Redirect, Response};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use oauth2::basic::{BasicClient, BasicErrorResponse, BasicRevocationErrorResponse, BasicTokenIntrospectionResponse, BasicTokenResponse};
 use oauth2::{AuthUrl, ClientId, ClientSecret, EndpointNotSet, EndpointSet, RedirectUrl, StandardRevocableToken, TokenUrl};
 use std::env;
 use axum::extract::FromRef;
 use anyhow::Context;
+use smol_str::SmolStr;
+use common::discord::UserId;
 use crate::{AppError, AppState};
 
 pub static CSRF_TOKEN: &str = "csrf_token";
@@ -68,4 +70,24 @@ impl IntoResponse for AuthRedirect {
     fn into_response(self) -> Response {
         Redirect::temporary("/auth/discord").into_response()
     }
+}
+
+// The user data we'll get back from Discord.
+// https://discord.com/developers/docs/resources/user#user-object-user-structure
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DiscordUserData {
+    pub id: UserId,
+    pub avatar: Option<String>,
+    pub username: String,
+    pub discriminator: String,
+}
+
+/// The guild member data we'll get back from Discord.
+/// https://discord.com/developers/docs/resources/guild#guild-member-object
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GuildMember {
+    // pub id: SmolStr,
+    // pub user: DiscordUserData,
+    // pub nick: Option<String>,
+    pub roles: Vec<SmolStr>
 }

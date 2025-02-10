@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use std::string::ToString;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
@@ -21,7 +20,7 @@ pub fn health_indicator(props: &HealthIndicatorProps) -> Html  {
 
 #[derive(Properties, PartialEq)]
 pub struct StatusCardProps {
-    pub status: Rc<ServerStatus>,
+    pub status: ServerStatus,
 }
 
 #[function_component(ServerStatusCard)]
@@ -29,7 +28,7 @@ pub fn status_card(props: &StatusCardProps) -> Html {
     let status = &props.status;
     html! {
         <Card>
-            <CardTitle>{&status.name}</CardTitle>
+            <CardTitle>{&*status.name}</CardTitle>
             <CardBody>
                 <DescriptionList mode={[DescriptionListMode::Horizontal]}>
                     <DescriptionGroup term="Status">

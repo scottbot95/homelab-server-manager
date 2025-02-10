@@ -3,6 +3,7 @@ use anyhow::Context;
 use axum::response::{IntoResponse, Redirect};
 use axum::Router;
 use axum::routing::get;
+use reqwest::Client;
 use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
 use tower_sessions::{Expiry, MemoryStore, Session, SessionManagerLayer};
@@ -11,6 +12,7 @@ use tower_sessions::cookie::time::Duration;
 use crate::{AppError, AppState, User};
 use crate::routes::api::make_api_router;
 use crate::routes::auth::make_auth_router;
+use crate::servers::ServerManager;
 
 mod auth;
 mod api;
@@ -20,13 +22,14 @@ pub fn make_router(secure: bool) -> Router {
     let oauth_client = crate::auth::oauth_client().unwrap();
     let app_state = AppState {
         oauth_client,
+        server_manager: ServerManager::new(Client::new()),
     };
 
     let session_store = MemoryStore::default();
     let session_layer = SessionManagerLayer::new(session_store)
         .with_secure(secure)
         .with_same_site(SameSite::Lax)
-        .with_expiry(Expiry::OnInactivity(Duration::seconds(30)));
+        .with_expiry(Expiry::OnInactivity(Duration::days(1)));
 
     let static_dir = Path::new("./dist");
 

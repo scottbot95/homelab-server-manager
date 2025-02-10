@@ -3,8 +3,8 @@ use axum::response::{IntoResponse, Redirect};
 use oauth2::{AuthorizationCode, CsrfToken, Scope, TokenResponse};
 use anyhow::{anyhow, Context};
 use tower_sessions::Session;
-use crate::{AppError, UserData};
-use crate::auth::{AuthRequest, OAuthClient, CSRF_TOKEN};
+use crate::{AppError, User, UserData};
+use crate::auth::{AuthRequest, OAuthClient, DiscordUserData, CSRF_TOKEN};
 
 pub async fn discord_auth(
     State(client): State<OAuthClient>,
@@ -64,29 +64,31 @@ pub async fn login_authorized(
     let client = reqwest::Client::new();
 
     // Get an auth token
-    let token = oauth_client
+    let tokens = oauth_client
         .exchange_code(AuthorizationCode::new(query.code.clone()))
         .request_async(&client)
         .await
         .context("failed in sending request request to authorization server")?;
 
     // Fetch user data from discord
-    let user_data: UserData = client
+    let discord_user = client
         // https://discord.com/developers/docs/resources/user#get-current-user
         .get("https://discordapp.com/api/users/@me")
-        .bearer_auth(token.access_token().secret())
+        .bearer_auth(tokens.access_token().secret())
         .send()
         .await
         .context("failed in sending request to target Url")?
-        .json::<UserData>()
+        .json::<DiscordUserData>()
         .await
         .context("failed to deserialize response as JSON")?;
+    
+    let user_data = UserData {
+        discord_user,
+        tokens
+    };
 
     // Insert user data into session
-    session
-        .insert("user", &user_data)
-        .await
-        .context("failed in inserting serialized value into session")?;
+    User::update_session(&session, &user_data).await?;
 
     Ok(Redirect::to("/"))
 }

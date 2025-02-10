@@ -1,9 +1,10 @@
 use std::fmt::{Display, Formatter};
 use serde::{Deserialize, Serialize};
+use smol_str::SmolStr;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ServerStatus {
-    pub name: String,
+    pub name: SmolStr,
     pub health: HealthStatus,
 }
 
