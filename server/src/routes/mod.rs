@@ -9,7 +9,7 @@ use tower_http::trace::TraceLayer;
 use tower_sessions::{Expiry, Session, SessionManagerLayer, SessionStore};
 use tower_sessions::cookie::SameSite;
 use tower_sessions::cookie::time::Duration;
-use crate::{AppError, AppState, User};
+use crate::{AppError, AppResult, AppState, User};
 use crate::routes::api::make_api_router;
 use crate::routes::auth::make_auth_router;
 use crate::servers::ServerManager;
@@ -17,12 +17,12 @@ use crate::servers::ServerManager;
 mod auth;
 mod api;
 
-pub async fn make_router<Store: SessionStore + Clone>(secure: bool, session_store: Store) -> Result<Router, AppError> {
+pub async fn make_router<Store: SessionStore + Clone>(secure: bool, session_store: Store) -> AppResult<Router> {
     // `MemoryStore` is just used as an example. Don't use this in production.
     let oauth_client = crate::auth::oauth_client()?;
     let app_state = AppState {
         oauth_client,
-        server_manager: ServerManager::new(Client::new()),
+        server_manager: ServerManager::new(Client::new(), "./config.json".into())?,
     };
     
     let session_layer = SessionManagerLayer::new(session_store)

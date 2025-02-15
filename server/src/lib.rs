@@ -6,7 +6,9 @@ use axum::extract::{FromRequestParts, OptionalFromRequestParts};
 use http::request::Parts;
 use http::StatusCode;
 use std::convert::Infallible;
+use std::fmt::{Display, Formatter};
 use std::ops::Deref;
+use std::sync::Arc;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use axum::response::{IntoResponse, Response};
@@ -85,9 +87,16 @@ async fn shutdown_signal(deletion_task_abort_handle: AbortHandle) {
     }
 }
 
+pub type AppResult<T> = Result<T, AppError>;
 
 #[derive(Debug)]
 pub struct AppError(anyhow::Error);
+
+impl Display for AppError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
 
 // Tell axum how to convert `AppError` into a response.
 impl IntoResponse for AppError {

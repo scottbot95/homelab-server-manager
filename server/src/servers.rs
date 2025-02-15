@@ -1,49 +1,55 @@
 use std::collections::HashSet;
+use std::fmt::{Display, Formatter};
+use std::path::PathBuf;
+use std::sync::Arc;
 use anyhow::Context;
 use axum::extract::FromRef;
 use oauth2::TokenResponse;
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 use common::discord::RoleId;
 use common::status::{HealthStatus, ServerStatus};
-use crate::{AppError, AppState, User};
+use crate::{AppError, AppResult, AppState, User};
 use crate::auth::GuildMember;
+use crate::servers::config::ConfigStore;
+
+mod config;
 
 const GUILD_ID: u64 = 808535850030727198;
 
-
-struct Server {
-    required_role: RoleId,
-    status: ServerStatus,
+#[derive(Debug, Deserialize, Serialize)]
+pub enum GameKind {
+    Factorio
 }
 
-static SERVERS: once_cell::sync::Lazy<Vec<Server>> = once_cell::sync::Lazy::new(|| vec![
-    Server {
-        required_role: RoleId::from_raw(1297802542461227069).unwrap(),
-        status: ServerStatus {
-            name: SmolStr::new_static("Factorio Space Age"),
-            health: HealthStatus::Unknown,
-        }
-    },
-    Server {
-        required_role: RoleId::from_raw(1338296379638022224).unwrap(),
-        status: ServerStatus {
-            name: SmolStr::new_static("Factorio Cardinal"),
-            health: HealthStatus::Unknown,
+impl Display for GameKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GameKind::Factorio => write!(f, "Factorio"),
         }
     }
-]);
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ServerConfig {
+    game: GameKind,
+    host: SmolStr,
+    required_role: Option<RoleId>,
+}
 
 #[derive(Clone)]
 pub struct ServerManager {
     client: Client,
+    config_store: Arc<ConfigStore>,
 }
 
 impl ServerManager {
-    pub fn new(client: Client) -> Self {
-        Self {
-            client
-        }
+    pub fn new(client: Client, config_path: PathBuf) -> AppResult<Self> {
+        Ok(Self {
+            client,
+            config_store: ConfigStore::new(config_path)?.into(),
+        })
     }
 
     pub async fn get_servers_for_user(&self, user: &User) -> Result<Vec<ServerStatus>, AppError> {
@@ -63,21 +69,55 @@ impl ServerManager {
 
         let roles = guild_member.roles.into_iter()
             .collect();
-        self.get_servers(roles).await
+
+        Ok(self.get_servers(roles).await)
     }
 
-    async fn get_servers(&self, roles: HashSet<RoleId>) -> Result<Vec<ServerStatus>, AppError> {
-        // Fetch user data from discord
-        let servers = SERVERS.iter()
-            .filter_map(|s| roles.contains(&s.required_role).then_some(s.status.clone()))
-            .collect();
+    async fn get_servers(&self, roles: HashSet<RoleId>) -> Vec<ServerStatus> {
+        let configs = self.config_store.configs().await;
 
-        Ok(servers)
+        let futures = configs.iter()
+            .filter_map(|c| {
+                c.required_role
+                    .filter(|r| roles.contains(r))
+                    .map(|_| self.fetch_server_status(c))
+            });
+
+        futures::future::join_all(futures).await
+    }
+
+    async fn fetch_server_status(&self, config: &ServerConfig) -> ServerStatus {
+        let status = config.game.fetch_server_status(&config.host).await;
+        status.unwrap_or_else(|e| {
+            tracing::error!("Failed fetching server status for {:?}: {}", config, e);
+            ServerStatus {
+                name: format!("Unknown server {}", &config.game).into(),
+                health: HealthStatus::Unknown,
+            }
+        })
     }
 }
 
 impl FromRef<AppState> for ServerManager {
     fn from_ref(input: &AppState) -> Self {
         input.server_manager.clone()
+    }
+}
+
+trait StatusFetcher {
+    async fn fetch_server_status(&self, host: &str) -> Result<ServerStatus, AppError>;
+}
+
+impl StatusFetcher for GameKind {
+    async fn fetch_server_status(&self, host: &str) -> Result<ServerStatus, AppError> {
+        match self {
+            GameKind::Factorio => {
+                // FIXME actually fetch status
+                Ok(ServerStatus {
+                    name: host.into(),
+                    health: HealthStatus::Unknown,
+                })
+            }
+        }
     }
 }
