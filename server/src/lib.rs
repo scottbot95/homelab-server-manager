@@ -8,7 +8,6 @@ use http::StatusCode;
 use std::convert::Infallible;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
-use std::sync::Arc;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use axum::response::{IntoResponse, Response};

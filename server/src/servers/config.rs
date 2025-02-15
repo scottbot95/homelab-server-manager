@@ -2,7 +2,6 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use futures::StreamExt;
 use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use tokio::sync::{RwLock, RwLockReadGuard};
 use tokio::sync::mpsc::error::TrySendError;
