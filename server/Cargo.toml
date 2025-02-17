@@ -21,6 +21,7 @@ http = "1.2.0"
 headers = "0.4.0"
 moka = { version = "0.12.10", features = ["future"] }
 notify = "8.0.0"
+rcon = { version = "0.6.0", features = ["rt-tokio"] }
 tokio = { version = "1.43.0", features = ["full"] }
 tower-http = { version = "0.6.2", features = ["full"] }
 tower-sessions = "0.14.0"

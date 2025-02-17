@@ -11,34 +11,37 @@ use oauth2::TokenResponse;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
+use tokio::net::TcpStream;
 use common::discord::{RoleId, UserId};
 use common::status::{HealthStatus, ServerStatus};
 use crate::{AppError, AppResult, AppState, User};
 use crate::auth::GuildMember;
 use crate::servers::config::ConfigStore;
+use crate::servers::factorio::FactorioConfig;
 
 mod config;
+mod factorio;
 
 const GUILD_ID: u64 = 808535850030727198;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize)]
-pub enum GameKind {
-    Factorio
+pub enum GameConfig {
+    Factorio(FactorioConfig)
 }
 
-impl Display for GameKind {
+impl Display for GameConfig {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            GameKind::Factorio => write!(f, "Factorio"),
+            GameConfig::Factorio(_) => write!(f, "Factorio"),
         }
     }
 }
 
-// TODO we maybe don't care about role for use as the cache key
-#[derive(Debug, Eq, PartialEq, Clone, Hash, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ServerConfig {
-    game: GameKind,
-    host: SmolStr,
+    name: SmolStr,
+    game: GameConfig,
+    public_dns: SmolStr,
     required_role: Option<RoleId>,
 }
 
@@ -46,7 +49,7 @@ pub struct ServerConfig {
 pub struct ServerManager {
     client: Client,
     config_store: Arc<ConfigStore>,
-    statuses: Cache<ServerConfig, ServerStatus>,
+    statuses: Cache<GameConfig, ServerStatus>,
     user_roles: Cache<UserId, HashSet<RoleId>>,
 }
 
@@ -87,7 +90,7 @@ impl ServerManager {
                 c.required_role
                     .filter(|r| roles.contains(r))
                     .map(|_| {
-                        self.statuses.get_with_by_ref(c, self.fetch_server_status(c))
+                        self.statuses.get_with_by_ref(&c.game, self.fetch_server_status(c))
                     })
             });
 
@@ -96,11 +99,17 @@ impl ServerManager {
 
     async fn fetch_server_status(&self, config: &ServerConfig) -> ServerStatus {
         tracing::debug!("Updating server status: {:?}", config);
-        let status = config.game.fetch_server_status(&config.host).await;
+        let status = config.game
+            .fetch_server_status()
+            .await
+            .map(|mut status| {
+                status.name = config.name.clone();
+                status
+            });
         status.unwrap_or_else(|e| {
             tracing::error!("Failed fetching server status for {:?}: {}", config, e);
             ServerStatus {
-                name: format!("Unknown server {}", &config.game).into(),
+                name: config.name.clone(),
                 health: HealthStatus::Unknown,
             }
         })
@@ -136,19 +145,13 @@ impl FromRef<AppState> for ServerManager {
 }
 
 trait StatusFetcher {
-    async fn fetch_server_status(&self, host: &str) -> Result<ServerStatus, AppError>;
+    async fn fetch_server_status(&self) -> Result<ServerStatus, AppError>;
 }
 
-impl StatusFetcher for GameKind {
-    async fn fetch_server_status(&self, host: &str) -> Result<ServerStatus, AppError> {
+impl StatusFetcher for GameConfig {
+    async fn fetch_server_status(&self) -> Result<ServerStatus, AppError> {
         match self {
-            GameKind::Factorio => {
-                // FIXME actually fetch status
-                Ok(ServerStatus {
-                    name: host.into(),
-                    health: HealthStatus::Unknown,
-                })
-            }
+            GameConfig::Factorio(config) => config.fetch_server_status().await
         }
     }
 }
