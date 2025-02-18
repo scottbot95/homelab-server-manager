@@ -16,6 +16,7 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 anyhow = "1.0.95"
 axum = "0.8.1"
 #axum-extra = { version = "0.10.0", features = ["cookie", "typed-header"] }
+clap = { version = "4.5.30", features = ["derive"] }
 futures = "0.3.31"
 http = "1.2.0"
 #headers = "0.4.0"

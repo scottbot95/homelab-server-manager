@@ -1,7 +1,7 @@
 use crate::routes::api::make_api_router;
 use crate::routes::auth::make_auth_router;
 use crate::servers::ServerManager;
-use crate::{AppError, AppResult, AppState, User};
+use crate::{AppError, AppResult, AppState, Server, User};
 use anyhow::Context;
 use axum::response::{IntoResponse, Redirect};
 use axum::routing::get;
@@ -18,18 +18,18 @@ mod api;
 mod auth;
 
 pub async fn make_router<Store: SessionStore + Clone>(
-    secure: bool,
+    server: &Server,
     session_store: Store,
 ) -> AppResult<Router> {
     // `MemoryStore` is just used as an example. Don't use this in production.
     let oauth_client = crate::auth::oauth_client()?;
     let app_state = AppState {
         oauth_client,
-        server_manager: ServerManager::new(Client::new(), "./config.json".into())?,
+        server_manager: ServerManager::new(Client::new(), server.config_path.clone())?,
     };
 
     let session_layer = SessionManagerLayer::new(session_store)
-        .with_secure(secure)
+        .with_secure(server.secure)
         .with_same_site(SameSite::Lax)
         .with_expiry(Expiry::OnInactivity(Duration::days(1)));
 

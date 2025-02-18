@@ -8,11 +8,35 @@
 //! CLIENT_ID=REPLACE_ME CLIENT_SECRET=REPLACE_ME cargo run -p example-oauth
 //! ```
 
-use server::{run_server, AppError};
+use std::net::IpAddr;
+use std::path::PathBuf;
+use clap::Parser;
+use server::AppError;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+#[derive(Parser, Debug)]
+struct Args {
+    /// Address to bind
+    #[arg(short, long, default_value = "0.0.0.0")]
+    addr: IpAddr,
+
+    /// Port to bind
+    #[arg(short, long, default_value_t = 9000)]
+    port: u16,
+
+    /// Path to the config file
+    #[arg(short, long, default_value = "./config.json")]
+    config_file: PathBuf,
+
+    /// Whether service is behind a TLS proxy
+    #[arg(short, long, default_value_t = false)]
+    secure: bool,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), AppError> {
+    let args = Args::parse();
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -25,7 +49,13 @@ async fn main() -> Result<(), AppError> {
         )
         .init();
 
-    run_server().await?;
+    let server = server::Server {
+        bind: (args.addr, args.port).into(),
+        config_path: args.config_file,
+        secure: args.secure,
+    };
+
+    server.run_server().await?;
 
     Ok(())
 }
