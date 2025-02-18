@@ -33,7 +33,10 @@ pub async fn make_router<Store: SessionStore + Clone>(
         .with_same_site(SameSite::Lax)
         .with_expiry(Expiry::OnInactivity(Duration::days(1)));
 
-    let static_dir = Path::new("./dist");
+    let static_dir = match option_env!("FRONTEND_DIST") {
+        Some(path) => Path::new(path),
+        None => Path::new("./dist"),
+    };
 
     Ok(Router::new()
         // .route("/", get(index))
