@@ -2,8 +2,8 @@
 
 mod app;
 mod components;
-mod pages;
 mod hook;
+mod pages;
 
 use browser_panic_hook::{CustomBody, IntoPanicHook};
 use wasm_bindgen::prelude::*;

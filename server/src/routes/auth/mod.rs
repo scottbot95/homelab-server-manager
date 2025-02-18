@@ -1,10 +1,10 @@
 mod discord;
 
-use axum::response::IntoResponse;
-use axum::Router;
-use axum::routing::get;
-use http::StatusCode;
 use crate::AppState;
+use axum::response::IntoResponse;
+use axum::routing::get;
+use axum::Router;
+use http::StatusCode;
 
 pub(super) fn make_auth_router() -> Router<AppState> {
     Router::new()

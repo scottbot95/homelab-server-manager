@@ -1,10 +1,10 @@
+use crate::app::state::AppState;
+use common::user::UserData;
 use gloo_net::http::Request;
-use yew::prelude::*;
 use patternfly_yew::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use yewdux::{use_selector, Dispatch};
-use common::user::UserData;
-use crate::app::state::{AppAction, AppState};
+use yew::prelude::*;
+use yewdux::use_selector;
 
 #[function_component(UserActions)]
 pub fn user_actions() -> Html {
@@ -12,13 +12,13 @@ pub fn user_actions() -> Html {
     // dependency on loading so that we will try to load again if this is set back to true
     use_effect_with(loading.clone(), |loading| {
         let loading = loading.clone();
-        if *loading != true { return; } // only try to load if loading == true
+        if !(*loading) {
+            return;
+        } // only try to load if loading == true
         spawn_local(async move {
-            let resp = Request::get("/api/me")
-                .send()
-                .await;
+            let resp = Request::get("/api/me").send().await;
 
-            let resp = match resp  {
+            let resp = match resp {
                 Ok(resp) => resp,
                 Err(e) => {
                     log::error!("Failed to get user info: {}", e);
@@ -32,21 +32,18 @@ pub fn user_actions() -> Html {
                 Ok(user_data) => {
                     // user dispatcher directly so we don't re-render for all state changes
                     #[cfg(target_arch = "wasm32")]
-                    Dispatch::<AppState>::global()
-                        .apply(AppAction::UpdateUser(user_data.into()));
+                    yewdux::Dispatch::<AppState>::global().apply(crate::app::state::AppAction::UpdateUser(user_data.into()));
                     loading.set(false);
                 }
                 Err(e) => {
                     log::error!("Failed to get user info: {}", e);
-                    return;
                 }
             }
         });
     });
 
-    let username = use_selector(|state: &AppState| {
-        Option::as_ref(&state.user_data).map(|u| u.name.clone())
-    });
+    let username =
+        use_selector(|state: &AppState| Option::as_ref(&state.user_data).map(|u| u.name.clone()));
 
     if *loading {
         return html! {
@@ -55,7 +52,7 @@ pub fn user_actions() -> Html {
     }
 
     let Some(username) = username.as_ref() else {
-        return html!{
+        return html! {
             <a href="/auth/discord">
                 <Button variant={ButtonVariant::Primary}>
                     {"Login"}
@@ -64,7 +61,7 @@ pub fn user_actions() -> Html {
         };
     };
 
-    html!{
+    html! {
         <Dropdown
             position={Position::Right}
             text={username.to_string()}

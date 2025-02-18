@@ -1,22 +1,19 @@
-use std::rc::Rc;
-use gloo_net::Error;
-use gloo_net::http::{Request, Response};
-use gloo_utils::window;
+use crate::pages::MyPage;
+use gloo_net::http::Request;
 use patternfly_yew::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use crate::pages::MyPage;
 
-use yew::prelude::*;
-use yewdux::use_selector;
-use common::status::{HealthStatus, ServerStatus};
 use crate::app::AppState;
 use crate::components::ServerStatusCard;
+use common::status::ServerStatus;
+use yew::prelude::*;
+use yewdux::use_selector;
 
 #[function_component(Factorio)]
 pub fn factorio() -> Html {
     let logged_in = *use_selector(|s: &AppState| s.user_data.is_some());
     let loading = use_state_eq(|| false);
-    let servers = use_state_eq(|| Vec::<ServerStatus>::new());
+    let servers = use_state_eq(Vec::<ServerStatus>::new);
     {
         let servers = servers.clone();
         let loading = loading.clone();
@@ -24,9 +21,7 @@ pub fn factorio() -> Html {
             if logged_in && !*loading {
                 loading.set(true);
                 spawn_local(async move {
-                    let resp = Request::get("/api/servers/status")
-                        .send()
-                        .await;
+                    let resp = Request::get("/api/servers/status").send().await;
                     match resp {
                         Ok(resp) => {
                             let servers_resp = resp

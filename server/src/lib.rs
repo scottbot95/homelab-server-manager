@@ -2,37 +2,39 @@ mod auth;
 mod routes;
 mod servers;
 
-use axum::extract::{FromRequestParts, OptionalFromRequestParts};
-use http::request::Parts;
-use http::StatusCode;
-use std::convert::Infallible;
-use std::fmt::{Display, Formatter};
-use std::ops::Deref;
-use anyhow::Context;
-use serde::{Deserialize, Serialize};
-use axum::response::{IntoResponse, Response};
-use oauth2::basic::BasicTokenResponse;
-use tokio::signal;
-use tokio::task::AbortHandle;
-use tower_sessions::{ExpiredDeletion, Session};
-use tower_sessions_sqlx_store::SqliteStore;
-use tower_sessions_sqlx_store::sqlx::SqlitePool;
-use auth::DiscordUserData;
 use crate::auth::OAuthClient;
 use crate::routes::make_router;
 use crate::servers::ServerManager;
+use anyhow::Context;
+use auth::DiscordUserData;
+use axum::extract::{FromRequestParts, OptionalFromRequestParts};
+use axum::response::{IntoResponse, Response};
+use http::request::Parts;
+use http::StatusCode;
+use oauth2::basic::BasicTokenResponse;
+use serde::{Deserialize, Serialize};
+use std::convert::Infallible;
+use std::fmt::{Display, Formatter};
+use std::ops::Deref;
+use tokio::signal;
+use tokio::task::AbortHandle;
+use tower_sessions::{ExpiredDeletion, Session};
+use tower_sessions_sqlx_store::sqlx::SqlitePool;
+use tower_sessions_sqlx_store::SqliteStore;
 
 pub async fn run_server() -> Result<(), AppError> {
     // let session_store = MemoryStore::default();
     let pool = SqlitePool::connect("sqlite:sessions.db?mode=rwc").await?;
     let session_store = SqliteStore::new(pool);
-    session_store.migrate()
+    session_store
+        .migrate()
         .await
         .context("Failed to migrate session store")?;
 
     let deletion_task = tokio::task::spawn(
-        session_store.clone()
-            .continuously_delete_expired(tokio::time::Duration::from_secs(10))
+        session_store
+            .clone()
+            .continuously_delete_expired(tokio::time::Duration::from_secs(10)),
     );
 
     let app = make_router(false, session_store).await?;
@@ -55,7 +57,7 @@ pub async fn run_server() -> Result<(), AppError> {
     match deletion_task.await {
         Ok(res) => res?,
         // task being cancelled is expected, don't count as a real error
-        Err(err) if err.is_cancelled() => {},
+        Err(err) if err.is_cancelled() => {}
         Err(err) => Err(err)?,
     }
 
@@ -104,8 +106,9 @@ impl IntoResponse for AppError {
 
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Something went wrong: {:#}", self.0)
-        ).into_response()
+            format!("Something went wrong: {:#}", self.0),
+        )
+            .into_response()
     }
 }
 
@@ -183,10 +186,7 @@ where
         //     .await
         //     .map_err(IntoResponse::into_response)?;
 
-        Ok(Self {
-            session,
-            user_data
-        })
+        Ok(Self { session, user_data })
     }
 }
 

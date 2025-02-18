@@ -1,13 +1,13 @@
+use crate::servers::ServerConfig;
+use crate::AppResult;
+use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
-use tokio::sync::{RwLock, RwLockReadGuard};
 use tokio::sync::mpsc::error::TrySendError;
+use tokio::sync::{RwLock, RwLockReadGuard};
 use tokio::task::AbortHandle;
-use crate::AppResult;
-use crate::servers::ServerConfig;
 
 pub(super) struct ConfigStore {
     configs: Arc<RwLock<Vec<ServerConfig>>>,
@@ -28,7 +28,7 @@ impl ConfigStore {
                     tracing::error!("File change missed: watcher shutdown");
                 }
             },
-            notify::Config::default()
+            notify::Config::default(),
         )?;
         watcher.watch(&config_path, RecursiveMode::NonRecursive)?;
 
@@ -54,7 +54,7 @@ impl ConfigStore {
                         }
                     }
                 }
-                
+
                 tracing::error!("Watcher closed unexpectedly");
             })
         };
@@ -62,7 +62,7 @@ impl ConfigStore {
         Ok(Self {
             configs,
             load_task: handle.abort_handle(),
-            _watcher: watcher.into()
+            _watcher: watcher,
         })
     }
 
@@ -72,8 +72,7 @@ impl ConfigStore {
 
     async fn load_config_file(config_path: &Path, configs: Arc<RwLock<Vec<ServerConfig>>>) {
         // TODO figure out a nice way to use tokio's File
-        let config_file = File::open(config_path)
-            .expect("failed to open server config file");
+        let config_file = File::open(config_path).expect("failed to open server config file");
         let reader = BufReader::new(config_file);
 
         match serde_json::from_reader(reader) {

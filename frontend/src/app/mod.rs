@@ -1,15 +1,15 @@
+use crate::app::user_actions::UserActions;
+use crate::pages::games::Factorio;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
 use yew_nested_router::prelude::{Switch as RouterSwitch, *};
 use yew_nested_router::Target;
-use crate::app::user_actions::UserActions;
-use crate::pages::games::Factorio;
 
 mod about;
-mod user_actions;
 mod state;
+mod user_actions;
 
-pub use state::{AppState, AppAction};
+pub use state::AppState;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Target)]
 pub enum AppRoute {

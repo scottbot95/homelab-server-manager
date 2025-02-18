@@ -1,6 +1,6 @@
+use common::user::UserData;
 use std::rc::Rc;
 use yewdux::{Reducer, Store};
-use common::user::UserData;
 
 pub enum AppAction {
     UpdateUser(Rc<Option<UserData>>),
@@ -13,9 +13,7 @@ pub struct AppState {
 impl Reducer<AppState> for AppAction {
     fn apply(self, _state: Rc<AppState>) -> Rc<AppState> {
         match self {
-            AppAction::UpdateUser(user_data) => AppState {
-                user_data,
-            }.into()
+            AppAction::UpdateUser(user_data) => AppState { user_data }.into(),
         }
     }
 }

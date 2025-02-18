@@ -1,10 +1,10 @@
+use crate::auth::{AuthRequest, DiscordUserData, OAuthClient, CSRF_TOKEN};
+use crate::{AppError, User, UserData};
+use anyhow::{anyhow, Context};
 use axum::extract::{Query, State};
 use axum::response::{IntoResponse, Redirect};
 use oauth2::{AuthorizationCode, CsrfToken, Scope, TokenResponse};
-use anyhow::{anyhow, Context};
 use tower_sessions::Session;
-use crate::{AppError, User, UserData};
-use crate::auth::{AuthRequest, OAuthClient, DiscordUserData, CSRF_TOKEN};
 
 pub async fn discord_auth(
     State(client): State<OAuthClient>,
@@ -19,13 +19,15 @@ pub async fn discord_auth(
 
     // Clear old session
     if session.id().is_some() {
-        session.delete()
+        session
+            .delete()
             .await
             .context("failed to delete old session")?;
     }
 
     // Save csrf_token
-    session.insert(CSRF_TOKEN, &csrf_token)
+    session
+        .insert(CSRF_TOKEN, &csrf_token)
         .await
         .context("failed in inserting CSRF token into session")?;
 
@@ -36,13 +38,15 @@ async fn csrf_token_validation_workflow(
     auth_request: &AuthRequest,
     session: &Session,
 ) -> anyhow::Result<(), AppError> {
-    let stored_csrf_token = session.get::<CsrfToken>(CSRF_TOKEN)
+    let stored_csrf_token = session
+        .get::<CsrfToken>(CSRF_TOKEN)
         .await
         .context("failed to read CSRF token from session")?
         .context("Csrf token missing")?;
 
     // Cleanup the CSRF token session
-    session.delete()
+    session
+        .delete()
         .await
         .context("Failed to destroy old session")?;
 
@@ -81,10 +85,10 @@ pub async fn login_authorized(
         .json::<DiscordUserData>()
         .await
         .context("failed to deserialize response as JSON")?;
-    
+
     let user_data = UserData {
         discord_user,
-        tokens
+        tokens,
     };
 
     // Insert user data into session
@@ -92,4 +96,3 @@ pub async fn login_authorized(
 
     Ok(Redirect::to("/"))
 }
-

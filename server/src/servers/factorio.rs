@@ -1,16 +1,16 @@
-use std::sync::Arc;
-use std::time::Duration;
+use crate::servers::StatusFetcher;
+use crate::AppResult;
 use anyhow::anyhow;
+use common::status::{HealthStatus, ServerStatus};
 use moka::future::Cache;
 use once_cell::sync::Lazy;
 use rcon::Connection;
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
+use std::sync::Arc;
+use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use common::status::{HealthStatus, ServerStatus};
-use crate::AppResult;
-use crate::servers::StatusFetcher;
 
 static CLIENTS: Lazy<Cache<FactorioConfig, Arc<Mutex<Connection<TcpStream>>>>> = Lazy::new(|| {
     Cache::builder()
@@ -27,7 +27,7 @@ pub struct FactorioConfig {
 
 impl FactorioConfig {
     async fn connect(&self) -> AppResult<Arc<Mutex<Connection<TcpStream>>>> {
-        let conn =Connection::<TcpStream>::builder()
+        let conn = Connection::<TcpStream>::builder()
             .enable_factorio_quirks(true)
             .connect(&*self.rcon_host, &self.rcon_password)
             .await?;
@@ -41,10 +41,7 @@ impl StatusFetcher for FactorioConfig {
         let mutex = CLIENTS
             .try_get_with_by_ref(self, self.connect())
             .await
-            .map_err(|err|
-                Arc::try_unwrap(err)
-                    .unwrap_or_else(|e| anyhow!("{e}").into())
-            )?;
+            .map_err(|err| Arc::try_unwrap(err).unwrap_or_else(|e| anyhow!("{e}").into()))?;
 
         let mut conn = mutex.lock().await;
 

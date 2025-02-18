@@ -1,7 +1,7 @@
-use std::string::ToString;
-use patternfly_yew::prelude::*;
-use yew::prelude::*;
 use common::status::{HealthStatus, ServerStatus};
+use patternfly_yew::prelude::*;
+use std::string::ToString;
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct HealthIndicatorProps {
@@ -9,7 +9,7 @@ pub struct HealthIndicatorProps {
 }
 
 #[function_component(HealthIndicator)]
-pub fn health_indicator(props: &HealthIndicatorProps) -> Html  {
+pub fn health_indicator(props: &HealthIndicatorProps) -> Html {
     html! {
         <Split>
             // TODO Add some indicator icon
