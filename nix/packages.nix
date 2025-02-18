@@ -44,7 +44,7 @@
       };
 
       nativeArgs = commonArgs // {
-        
+        cargoExtraArgs = "--locked --package=server";
       };
 
       # Build *just* the cargo dependencies, so we can reuse
@@ -59,7 +59,7 @@
 
       wasmArgs = commonArgs // {
         pname = "homelab-server-manager-wasm";
-        cargoExtraArgs = "--package=frontend";
+        cargoExtraArgs = "--locked --package=frontend";
         CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
       };
 
@@ -71,20 +71,22 @@
         trunkIndexPath = "frontend/index.html";
 
         # The version of wasm-bindgen-cli here must match the one from Cargo.lock.
-        wasm-bindgen-cli = pkgs.wasm-bindgen-cli.override {
-          version = "0.2.93";
-          hash = "sha256-DDdu5mM3gneraM85pAepBXWn3TMofarVR4NbjMdz3r0=";
-          cargoHash = "sha256-birrg+XABBHHKJxfTKAMSlmTVYLmnmqMDfRnmG6g/YQ=";
-        };
+        wasm-bindgen-cli = pkgs.wasm-bindgen-cli_0_2_100;
 
         postPatch = ''
           mkdir -p ./frontend/node_modules
           cp -r ${node_modules}/lib/node_modules/frontend/node_modules/* ./frontend/node_modules/
         '';
+
+        # Crane gets confused by building trunk from workspace root
+        installPhaseCommand = ''
+          cp -r dist $out
+        '';
       });
 
     in {
       packages = {
+        inherit server frontend;
         default = server;
       };
     };
