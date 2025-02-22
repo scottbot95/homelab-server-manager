@@ -1,5 +1,5 @@
-use crate::servers::ServerConfig;
-use crate::AppResult;
+use crate::servers::StatusFetcher;
+use crate::{AppError, AppResult};
 use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use std::fs::File;
 use std::io::BufReader;
@@ -8,6 +8,20 @@ use std::sync::Arc;
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 use tokio::task::AbortHandle;
+use common::status::ServerStatus;
+use serde::Deserialize;
+use smol_str::SmolStr;
+use common::discord::RoleId;
+use std::fmt::{Display, Formatter};
+use crate::servers::factorio::FactorioConfig;
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ServerConfig {
+    pub(crate) name: SmolStr,
+    pub(crate) game: GameConfig,
+    pub(crate) public_dns: SmolStr,
+    pub(crate) required_role: Option<RoleId>,
+}
 
 pub(super) struct ConfigStore {
     configs: Arc<RwLock<Vec<ServerConfig>>>,
@@ -92,5 +106,26 @@ impl Drop for ConfigStore {
     fn drop(&mut self) {
         tracing::debug!("Dropping config store");
         self.load_task.abort();
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+pub enum GameConfig {
+    Factorio(FactorioConfig),
+}
+
+impl Display for GameConfig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GameConfig::Factorio(_) => write!(f, "Factorio"),
+        }
+    }
+}
+
+impl StatusFetcher for GameConfig {
+    async fn fetch_server_status(&self) -> Result<ServerStatus, AppError> {
+        match self {
+            GameConfig::Factorio(config) => config.fetch_server_status().await,
+        }
     }
 }

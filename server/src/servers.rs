@@ -1,6 +1,5 @@
 use crate::auth::GuildMember;
 use crate::servers::config::ConfigStore;
-use crate::servers::factorio::FactorioConfig;
 use crate::{AppError, AppResult, AppState, User};
 use anyhow::Context;
 use axum::extract::FromRef;
@@ -9,40 +8,16 @@ use common::status::{HealthStatus, ServerStatus};
 use moka::future::{Cache, CacheBuilder};
 use oauth2::TokenResponse;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use smol_str::SmolStr;
 use std::collections::HashSet;
-use std::fmt::{Display, Formatter};
-use std::hash::Hash;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
+use config::{GameConfig, ServerConfig};
 
 mod config;
 mod factorio;
 
 const GUILD_ID: u64 = 808535850030727198;
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize)]
-pub enum GameConfig {
-    Factorio(FactorioConfig),
-}
-
-impl Display for GameConfig {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            GameConfig::Factorio(_) => write!(f, "Factorio"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct ServerConfig {
-    name: SmolStr,
-    game: GameConfig,
-    public_dns: SmolStr,
-    required_role: Option<RoleId>,
-}
 
 #[derive(Clone)]
 pub struct ServerManager {
@@ -143,10 +118,3 @@ trait StatusFetcher {
     async fn fetch_server_status(&self) -> Result<ServerStatus, AppError>;
 }
 
-impl StatusFetcher for GameConfig {
-    async fn fetch_server_status(&self) -> Result<ServerStatus, AppError> {
-        match self {
-            GameConfig::Factorio(config) => config.fetch_server_status().await,
-        }
-    }
-}

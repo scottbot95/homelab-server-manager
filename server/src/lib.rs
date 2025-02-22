@@ -18,20 +18,23 @@ use std::fmt::{Display, Formatter};
 use std::net::SocketAddr;
 use std::ops::Deref;
 use std::path::PathBuf;
+use reqwest::Url;
 use tokio::signal;
 use tokio::task::AbortHandle;
 use tower_sessions::{ExpiredDeletion, Session};
 use tower_sessions_sqlx_store::sqlx::SqlitePool;
 use tower_sessions_sqlx_store::SqliteStore;
 
+#[derive(Debug)]
 pub struct Server {
     pub bind: SocketAddr,
     pub config_path: PathBuf,
-    pub secure: bool
+    pub public_url: Url,
 }
 
 impl Server {
     pub async fn run_server(self) -> Result<(), AppError> {
+        tracing::debug!("Starting server: {:?}", &self);
         // let session_store = MemoryStore::default();
         let pool = SqlitePool::connect("sqlite:sessions.db?mode=rwc").await?;
         let session_store = SqliteStore::new(pool);

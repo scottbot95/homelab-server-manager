@@ -1,4 +1,4 @@
-use crate::{AppError, AppState};
+use crate::{AppError, AppState, Server};
 use anyhow::Context;
 use axum::extract::FromRef;
 use axum::response::{IntoResponse, Redirect, Response};
@@ -35,11 +35,10 @@ impl FromRef<AppState> for OAuthClient {
     }
 }
 
-pub fn oauth_client() -> anyhow::Result<OAuthClient, AppError> {
+pub fn oauth_client(server: &Server) -> anyhow::Result<OAuthClient, AppError> {
     let client_id = env::var("DISCORD_CLIENT_ID").context("Missing CLIENT_ID!")?;
     let client_secret = env::var("DISCORD_CLIENT_SECRET").context("Missing CLIENT_SECRET!")?;
-    let host_url = env::var("HOST_URL").unwrap_or_else(|_| "http://localhost:9000".to_string());
-    let redirect_url = format!("{}/auth/discord/authorize", host_url);
+    let redirect_url = format!("{}/auth/discord/authorize", &server.public_url);
 
     let auth_url = env::var("AUTH_URL")
         .unwrap_or_else(|_| "https://discord.com/api/oauth2/authorize".to_string());

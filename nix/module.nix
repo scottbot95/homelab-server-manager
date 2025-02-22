@@ -44,11 +44,6 @@
             Public URL. Mainly used for OAuth redirection.
           '';
         };
-        secure = mkOption {
-          type = types.bool;
-          default = false;
-          description = "Whether server is behind a TLS proxy";
-        };
         openFirewall = mkOption {
           type = types.bool;
           default = false;
@@ -62,8 +57,8 @@
           args = [
             "--addr=${cfg.address}"
             "--port=${toString cfg.port}"
-            ] ++ (lib.optional (cfg.configFile != null) "--config-file=%d/config.json")
-            ++ (lib.optional cfg.secure "--secure");
+            "--public-url='${cfg.publicUrl}'"
+            ] ++ (lib.optional (cfg.configFile != null) "--config-file=%d/config.json");
           argString = builtins.concatStringsSep " \\\n" args;
         in {
           description = "Homelab Server Manager";

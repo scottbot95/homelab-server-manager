@@ -22,14 +22,14 @@ pub async fn make_router<Store: SessionStore + Clone>(
     session_store: Store,
 ) -> AppResult<Router> {
     // `MemoryStore` is just used as an example. Don't use this in production.
-    let oauth_client = crate::auth::oauth_client()?;
+    let oauth_client = crate::auth::oauth_client(server)?;
     let app_state = AppState {
         oauth_client,
         server_manager: ServerManager::new(Client::new(), server.config_path.clone())?,
     };
 
     let session_layer = SessionManagerLayer::new(session_store)
-        .with_secure(server.secure)
+        .with_secure(server.public_url.scheme() == "https")
         .with_same_site(SameSite::Lax)
         .with_expiry(Expiry::OnInactivity(Duration::days(1)));
 

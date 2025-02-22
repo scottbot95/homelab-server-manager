@@ -5,12 +5,13 @@ use common::status::{HealthStatus, ServerStatus};
 use moka::future::Cache;
 use once_cell::sync::Lazy;
 use rcon::Connection;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use smol_str::SmolStr;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
+use common::secret::Secret;
 
 static CLIENTS: Lazy<Cache<FactorioConfig, Arc<Mutex<Connection<TcpStream>>>>> = Lazy::new(|| {
     Cache::builder()
@@ -19,17 +20,18 @@ static CLIENTS: Lazy<Cache<FactorioConfig, Arc<Mutex<Connection<TcpStream>>>>> =
         .build()
 });
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
 pub struct FactorioConfig {
     pub rcon_host: SmolStr,
-    pub rcon_password: SmolStr,
+    pub rcon_password: Secret,
+    pub game_password: Secret,
 }
 
 impl FactorioConfig {
     async fn connect(&self) -> AppResult<Arc<Mutex<Connection<TcpStream>>>> {
         let conn = Connection::<TcpStream>::builder()
             .enable_factorio_quirks(true)
-            .connect(&*self.rcon_host, &self.rcon_password)
+            .connect(&*self.rcon_host, self.rcon_password.secret())
             .await?;
 
         Ok(Arc::new(Mutex::new(conn)))
