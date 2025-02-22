@@ -4,7 +4,8 @@ use crate::{AppError, AppResult, AppState, User};
 use anyhow::Context;
 use axum::extract::FromRef;
 use common::discord::{RoleId, UserId};
-use common::status::{HealthStatus, ServerStatus};
+use common::status::ServerStatus;
+use config::{GameConfig, ServerConfig};
 use moka::future::{Cache, CacheBuilder};
 use oauth2::TokenResponse;
 use reqwest::Client;
@@ -12,7 +13,6 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use config::{GameConfig, ServerConfig};
 
 mod config;
 mod factorio;
@@ -71,14 +71,21 @@ impl ServerManager {
     async fn fetch_server_status(&self, config: &ServerConfig) -> ServerStatus {
         tracing::debug!("Updating server status: {:?}", config);
         let status = config.game.fetch_server_status().await.map(|mut status| {
-            status.name = config.name.clone();
+            match &mut status {
+                ServerStatus::Factorio(status) => {
+                    status.name = config.name.clone();
+                    status.url = config.public_dns.clone();
+                }
+                ServerStatus::Unknown { name } => {
+                    *name = config.name.clone();
+                }
+            }
             status
         });
         status.unwrap_or_else(|e| {
             tracing::error!("Failed fetching server status for {:?}: {}", config, e);
-            ServerStatus {
+            ServerStatus::Unknown {
                 name: config.name.clone(),
-                health: HealthStatus::Unknown,
             }
         })
     }
@@ -117,4 +124,3 @@ impl FromRef<AppState> for ServerManager {
 trait StatusFetcher {
     async fn fetch_server_status(&self) -> Result<ServerStatus, AppError>;
 }
-

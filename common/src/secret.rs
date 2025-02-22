@@ -1,6 +1,6 @@
-use std::fmt::{Debug, Formatter};
 use serde::Deserialize;
 use smol_str::SmolStr;
+use std::fmt::{Debug, Formatter};
 
 #[derive(Clone, PartialEq, Eq, Hash, Deserialize)]
 pub struct Secret(SmolStr);
@@ -9,8 +9,10 @@ impl Secret {
     pub fn new(value: SmolStr) -> Secret {
         Self(value)
     }
-    
-    pub fn secret(&self) -> &SmolStr { &self.0 }
+
+    pub fn secret(&self) -> &SmolStr {
+        &self.0
+    }
 }
 
 impl Debug for Secret {
@@ -18,4 +20,3 @@ impl Debug for Secret {
         write!(f, "Secret(<redacted>)")
     }
 }
-

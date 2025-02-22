@@ -1,14 +1,14 @@
-use std::net::IpAddr;
-use std::path::PathBuf;
 use clap::Parser;
 use reqwest::Url;
 use server::AppError;
+use std::net::IpAddr;
+use std::path::PathBuf;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser, Debug)]
 struct Args {
     /// Address to bind
-    #[arg(short, long, default_value = "0.0.0.0")]
+    #[arg(long, default_value = "0.0.0.0")]
     addr: IpAddr,
 
     /// Port to bind
@@ -20,7 +20,7 @@ struct Args {
     config_file: PathBuf,
 
     /// Public URL. Mainly used for oauth2 redirects
-    #[arg(short, long, default_value = "http://localhost:9000")]
+    #[arg(long, default_value = "http://localhost:9000")]
     public_url: Url,
 }
 

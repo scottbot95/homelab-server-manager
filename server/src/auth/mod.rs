@@ -38,7 +38,10 @@ impl FromRef<AppState> for OAuthClient {
 pub fn oauth_client(server: &Server) -> anyhow::Result<OAuthClient, AppError> {
     let client_id = env::var("DISCORD_CLIENT_ID").context("Missing CLIENT_ID!")?;
     let client_secret = env::var("DISCORD_CLIENT_SECRET").context("Missing CLIENT_SECRET!")?;
-    let redirect_url = format!("{}/auth/discord/authorize", &server.public_url);
+    let redirect_url = server
+        .public_url
+        .join("/auth/discord/authorize")?
+        .to_string();
 
     let auth_url = env::var("AUTH_URL")
         .unwrap_or_else(|_| "https://discord.com/api/oauth2/authorize".to_string());

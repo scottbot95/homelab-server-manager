@@ -12,13 +12,13 @@ use axum::response::{IntoResponse, Response};
 use http::request::Parts;
 use http::StatusCode;
 use oauth2::basic::BasicTokenResponse;
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
 use std::fmt::{Display, Formatter};
 use std::net::SocketAddr;
 use std::ops::Deref;
 use std::path::PathBuf;
-use reqwest::Url;
 use tokio::signal;
 use tokio::task::AbortHandle;
 use tower_sessions::{ExpiredDeletion, Session};
@@ -76,7 +76,6 @@ impl Server {
         Ok(())
     }
 }
-
 
 async fn shutdown_signal(deletion_task_abort_handle: AbortHandle) {
     let ctrl_c = async {

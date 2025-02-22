@@ -1,11 +1,18 @@
+use crate::factorio::FactorioStatus;
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ServerStatus {
-    pub name: SmolStr,
-    pub health: HealthStatus,
+pub enum ServerStatus {
+    Factorio(FactorioStatus),
+    Unknown { name: SmolStr },
+}
+
+impl From<FactorioStatus> for ServerStatus {
+    fn from(value: FactorioStatus) -> Self {
+        Self::Factorio(value)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]

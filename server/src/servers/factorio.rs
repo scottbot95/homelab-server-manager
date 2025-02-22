@@ -1,6 +1,8 @@
 use crate::servers::StatusFetcher;
 use crate::AppResult;
 use anyhow::anyhow;
+use common::factorio::FactorioStatus;
+use common::secret::Secret;
 use common::status::{HealthStatus, ServerStatus};
 use moka::future::Cache;
 use once_cell::sync::Lazy;
@@ -11,7 +13,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use common::secret::Secret;
 
 static CLIENTS: Lazy<Cache<FactorioConfig, Arc<Mutex<Connection<TcpStream>>>>> = Lazy::new(|| {
     Cache::builder()
@@ -47,12 +48,26 @@ impl StatusFetcher for FactorioConfig {
 
         let mut conn = mutex.lock().await;
 
-        // TODO parse online players
-        let _players_text = conn.cmd("/players o").await?;
+        let players_text = conn.cmd("/players o").await?;
+        let players_online = players_text
+            .trim()
+            .split("\n")
+            .skip(1)
+            .map(|line| line.trim().split(' ').next().unwrap().into())
+            .collect();
 
-        Ok(ServerStatus {
+        let game_time = conn.cmd("/time").await?.into();
+        let game_version = conn.cmd("/version").await?.into();
+
+        Ok(FactorioStatus {
             name: self.rcon_host.clone(),
             health: HealthStatus::Running,
-        })
+            game_password: self.game_password.secret().clone(),
+            url: SmolStr::default(),
+            players_online,
+            game_time,
+            game_version,
+        }
+        .into())
     }
 }

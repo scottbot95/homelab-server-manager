@@ -32,7 +32,8 @@ pub fn user_actions() -> Html {
                 Ok(user_data) => {
                     // user dispatcher directly so we don't re-render for all state changes
                     #[cfg(target_arch = "wasm32")]
-                    yewdux::Dispatch::<AppState>::global().apply(crate::app::state::AppAction::UpdateUser(user_data.into()));
+                    yewdux::Dispatch::<AppState>::global()
+                        .apply(crate::app::state::AppAction::UpdateUser(user_data.into()));
                     loading.set(false);
                 }
                 Err(e) => {
