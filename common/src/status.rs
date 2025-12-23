@@ -1,17 +1,23 @@
 use crate::factorio::FactorioStatus;
 use serde::{Deserialize, Serialize};
-use smol_str::SmolStr;
 use std::fmt::{Display, Formatter};
+use crate::generic::GenericStatus;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ServerStatus {
     Factorio(FactorioStatus),
-    Unknown { name: SmolStr },
+    Generic(GenericStatus),
 }
 
 impl From<FactorioStatus> for ServerStatus {
     fn from(value: FactorioStatus) -> Self {
         Self::Factorio(value)
+    }
+}
+
+impl From<GenericStatus> for ServerStatus {
+    fn from(value: GenericStatus) -> Self {
+        Self::Generic(value)
     }
 }
 

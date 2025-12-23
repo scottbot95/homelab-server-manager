@@ -1,6 +1,6 @@
 [package]
 name = "frontend"
-edition = "2021"
+edition = "2024"
 readme = "../README.md"
 
 [dependencies]
@@ -10,22 +10,16 @@ serde.workspace = true
 serde_json.workspace = true
 
 browser-panic-hook = "0.2"
-chrono = { version = "0.4.30", default-features = false, features = ["wasmbind"] }
 gloo-net = "0.6.0"
 gloo-utils = "0.2"
 log = "0.4"
-patternfly-yew = { version = "0.6.1", features = ["tree", "icons-fab"] }
-popper-rs = { version = "0.3.2", features = ["yew", "debug"] }
-strum = { version = "0.26", features = ["derive"] }
-url = "2"
+patternfly-yew = { version = "0.6.3", features = ["tree", "icons-fab"] }
 wasm-bindgen = "=0.2.100" # Must match version in nixpkgs
 wasm-bindgen-futures = "0.4.50"
 wasm-logger = "0.2"
 yew = { version = "0.21", features = ["csr"] }
-yew-hooks = "0.3"
-yew-more-hooks = { version = "0.3.3", features = ["yew-hooks"] }
-yew-nested-router = "0.7.0"
-yewdux = "0.10.0"
+yew-router = "0.18.0"
+yewdux = "0.11.0"
 
 [dependencies.web-sys]
 version = "0.3"

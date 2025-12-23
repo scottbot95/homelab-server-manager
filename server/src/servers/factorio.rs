@@ -3,7 +3,7 @@ use crate::AppResult;
 use anyhow::anyhow;
 use common::factorio::FactorioStatus;
 use common::secret::Secret;
-use common::status::{HealthStatus, ServerStatus};
+use common::status::HealthStatus;
 use moka::future::Cache;
 use once_cell::sync::Lazy;
 use rcon::Connection;
@@ -39,8 +39,10 @@ impl FactorioConfig {
     }
 }
 
-impl StatusFetcher for FactorioConfig {
-    async fn fetch_server_status(&self) -> AppResult<ServerStatus> {
+const UNKNOWN_TEXT: SmolStr = SmolStr::new_static("unknown");
+
+impl FactorioConfig {
+    async fn populate_status(&self, status: &mut FactorioStatus) -> AppResult<()> {
         let mutex = CLIENTS
             .try_get_with_by_ref(self, self.connect())
             .await
@@ -49,25 +51,38 @@ impl StatusFetcher for FactorioConfig {
         let mut conn = mutex.lock().await;
 
         let players_text = conn.cmd("/players o").await?;
-        let players_online = players_text
+        status.players_online = players_text
             .trim()
             .split("\n")
             .skip(1)
             .map(|line| line.trim().split(' ').next().unwrap().into())
             .collect();
 
-        let game_time = conn.cmd("/time").await?.into();
-        let game_version = conn.cmd("/version").await?.into();
+        status.game_time = conn.cmd("/time").await?.into();
+        status.game_version = conn.cmd("/version").await?.into();
 
-        Ok(FactorioStatus {
+        Ok(())
+    }
+}
+
+impl StatusFetcher for FactorioConfig {
+    type Status = FactorioStatus;
+
+    async fn fetch_server_status(&self) -> FactorioStatus {
+        let mut status = FactorioStatus {
             name: self.rcon_host.clone(),
-            health: HealthStatus::Running,
+            health: HealthStatus::Unknown,
             game_password: self.game_password.secret().clone(),
             url: SmolStr::default(),
-            players_online,
-            game_time,
-            game_version,
+            players_online: Vec::new(),
+            game_time: UNKNOWN_TEXT,
+            game_version: UNKNOWN_TEXT,
+        };
+
+        if let Err(e) = self.populate_status(&mut status).await {
+            tracing::error!("Failed to fetch server status: {}", e);
         }
-        .into())
+
+        status
     }
 }

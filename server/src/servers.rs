@@ -16,6 +16,7 @@ use std::time::Duration;
 
 mod config;
 mod factorio;
+mod generic;
 
 const GUILD_ID: u64 = 808535850030727198;
 
@@ -65,29 +66,27 @@ impl ServerManager {
             })
         });
 
-        futures::future::join_all(futures).await
+        let servers = futures::future::join_all(futures).await;
+
+        tracing::debug!("Fetched server statuses: {:?}", servers);
+
+        servers
     }
 
     async fn fetch_server_status(&self, config: &ServerConfig) -> ServerStatus {
         tracing::debug!("Updating server status: {:?}", config);
-        let status = config.game.fetch_server_status().await.map(|mut status| {
-            match &mut status {
-                ServerStatus::Factorio(status) => {
-                    status.name = config.name.clone();
-                    status.url = config.public_dns.clone();
-                }
-                ServerStatus::Unknown { name } => {
-                    *name = config.name.clone();
-                }
+        let mut status = config.game.fetch_server_status().await;
+        match &mut status {
+            ServerStatus::Factorio(status) => {
+                status.name = config.name.clone();
+                status.url = config.public_dns.clone();
             }
-            status
-        });
-        status.unwrap_or_else(|e| {
-            tracing::error!("Failed fetching server status for {:?}: {}", config, e);
-            ServerStatus::Unknown {
-                name: config.name.clone(),
+            ServerStatus::Generic(status) => {
+                status.name = config.name.clone();
+                status.url = config.public_dns.clone();
             }
-        })
+        }
+        status
     }
 
     async fn fetch_user_roles(&self, user: &User) -> AppResult<HashSet<RoleId>> {
@@ -122,5 +121,7 @@ impl FromRef<AppState> for ServerManager {
 }
 
 trait StatusFetcher {
-    async fn fetch_server_status(&self) -> Result<ServerStatus, AppError>;
+    type Status: Into<ServerStatus>;
+
+    async fn fetch_server_status(&self) -> Self::Status;
 }

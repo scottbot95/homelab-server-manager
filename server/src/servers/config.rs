@@ -1,6 +1,6 @@
 use crate::servers::factorio::FactorioConfig;
 use crate::servers::StatusFetcher;
-use crate::{AppError, AppResult};
+use crate::AppResult;
 use common::discord::RoleId;
 use common::status::ServerStatus;
 use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
@@ -14,6 +14,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::{RwLock, RwLockReadGuard};
 use tokio::task::AbortHandle;
+use crate::servers::generic::GenericConfig;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ServerConfig {
@@ -110,22 +111,28 @@ impl Drop for ConfigStore {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+#[serde(tag = "type")]
 pub enum GameConfig {
     Factorio(FactorioConfig),
+    Generic(GenericConfig)
 }
 
 impl Display for GameConfig {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             GameConfig::Factorio(_) => write!(f, "Factorio"),
+            GameConfig::Generic(c) => write!(f, "{}", c.game_name),
         }
     }
 }
 
 impl StatusFetcher for GameConfig {
-    async fn fetch_server_status(&self) -> Result<ServerStatus, AppError> {
+    type Status = ServerStatus;
+
+    async fn fetch_server_status(&self) -> ServerStatus {
         match self {
-            GameConfig::Factorio(config) => config.fetch_server_status().await,
+            GameConfig::Factorio(config) => config.fetch_server_status().await.into(),
+            GameConfig::Generic(config) => config.fetch_server_status().await.into(),
         }
     }
 }

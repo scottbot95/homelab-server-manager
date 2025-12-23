@@ -1,20 +1,22 @@
 use crate::app::user_actions::UserActions;
-use crate::pages::games::Factorio;
+use crate::pages::games::GamePage;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
-use yew_nested_router::prelude::{Switch as RouterSwitch, *};
-use yew_nested_router::Target;
+use yew_router::prelude::{*, Switch, Redirect};
 
 mod about;
 mod state;
 mod user_actions;
 
 pub use state::AppState;
+use crate::components::NavLinkItem;
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Target)]
+#[derive(Debug, Clone, PartialEq, Eq, Routable)]
 pub enum AppRoute {
-    #[default]
+    #[at("/")]
     Index,
+    #[at("/game/:game")]
+    Game { game: String },
 }
 
 #[function_component(Application)]
@@ -22,9 +24,9 @@ pub fn app() -> Html {
     html! {
         <BackdropViewer>
             <ToastViewer>
-                <Router<AppRoute> default={AppRoute::Index}>
-                    <RouterSwitch<AppRoute> render={switch_app_route} />
-                </Router<AppRoute>>
+                <BrowserRouter>
+                    <Switch<AppRoute> render={switch_app_route} />
+                </BrowserRouter>
             </ToastViewer>
         </BackdropViewer>
     }
@@ -32,7 +34,8 @@ pub fn app() -> Html {
 
 fn switch_app_route(target: AppRoute) -> Html {
     match target {
-        AppRoute::Index => html! {<AppPage><Factorio/></AppPage>},
+        AppRoute::Index => html! { <Redirect<AppRoute> to={AppRoute::Game { game: "Factorio".to_owned() }} /> },
+        AppRoute::Game { game } => html! {<AppPage><GamePage key={game.clone()} game={game.clone()} /></AppPage>},
     }
 }
 
@@ -43,12 +46,20 @@ pub struct PageProps {
 
 #[function_component(AppPage)]
 fn page(props: &PageProps) -> Html {
+    let games = [
+        "Factorio",
+        "Generic"
+    ];
     let sidebar = html_nested! {
         <PageSidebar>
             <Nav>
                 <NavList>
                     <NavExpandable title="Games">
-                        <NavRouterItem<AppRoute> to={AppRoute::Index}>{"Factorio"}</NavRouterItem<AppRoute>>
+                        {for games.iter().map(|&game| html_nested! {
+                            <NavLinkItem<AppRoute> to={AppRoute::Game { game: game.to_owned() }}>
+                                {&game}
+                            </NavLinkItem<AppRoute>>
+                        })}
                     </NavExpandable>
                 </NavList>
             </Nav>

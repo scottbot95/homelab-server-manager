@@ -2,9 +2,10 @@ mod health_indicator;
 
 use crate::components::status::health_indicator::HealthIndicator;
 use common::factorio::FactorioStatus;
-use common::status::{HealthStatus, ServerStatus};
+use common::status::ServerStatus;
 use patternfly_yew::prelude::*;
 use yew::prelude::*;
+use common::generic::GenericStatus;
 
 #[derive(Properties, PartialEq)]
 pub struct StatusCardProps {
@@ -16,7 +17,7 @@ pub fn status_card(props: &StatusCardProps) -> Html {
     let status = &props.status;
     match status {
         ServerStatus::Factorio(status) => factorio_card(status),
-        ServerStatus::Unknown { name } => unknown_card(name),
+        ServerStatus::Generic(status) => generic_card(status),
     }
 }
 
@@ -26,14 +27,14 @@ fn factorio_card(status: &FactorioStatus) -> Html {
             <CardTitle>{&*status.name}</CardTitle>
             <CardBody>
                 <DescriptionList mode={[DescriptionListMode::Horizontal]}>
+                    <DescriptionGroup term="Status">
+                        <HealthIndicator health={status.health}/>
+                    </DescriptionGroup>
                     <DescriptionGroup term="URL">
                         {&*status.url}
                     </DescriptionGroup>
                     <DescriptionGroup term="Password">
                         {&*status.game_password}
-                    </DescriptionGroup>
-                    <DescriptionGroup term="Status">
-                        <HealthIndicator health={status.health}/>
                     </DescriptionGroup>
                     <DescriptionGroup term="Game Time">
                         {&*status.game_time}
@@ -62,14 +63,23 @@ fn factorio_card(status: &FactorioStatus) -> Html {
     }
 }
 
-fn unknown_card(name: &str) -> Html {
-    html! {
+fn generic_card(status: &GenericStatus) -> Html {
+    html!{
         <Card>
-            <CardTitle>{name}</CardTitle>
+            <CardTitle>{&*status.name}</CardTitle>
             <CardBody>
                 <DescriptionList mode={[DescriptionListMode::Horizontal]}>
                     <DescriptionGroup term="Status">
-                        <HealthIndicator health={HealthStatus::Unknown}/>
+                        <HealthIndicator health={status.health}/>
+                    </DescriptionGroup>
+                    <DescriptionGroup term="Game">
+                        {&*status.game_name}
+                    </DescriptionGroup>
+                    <DescriptionGroup term="URL">
+                        {&*status.url}
+                    </DescriptionGroup>
+                    <DescriptionGroup term="Password">
+                        {&*status.game_password}
                     </DescriptionGroup>
                 </DescriptionList>
             </CardBody>
