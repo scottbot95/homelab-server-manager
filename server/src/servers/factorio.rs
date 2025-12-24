@@ -49,6 +49,8 @@ impl FactorioConfig {
             .map_err(|err| Arc::try_unwrap(err).unwrap_or_else(|e| anyhow!("{e}").into()))?;
 
         let mut conn = mutex.lock().await;
+        
+        status.health = HealthStatus::Running;
 
         let players_text = conn.cmd("/players o").await?;
         status.players_online = players_text
