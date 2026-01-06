@@ -24,8 +24,4 @@ yewdux = "0.11.0"
 
 [dependencies.web-sys]
 version = "0.3"
-features = [
-    "HtmlElement",
-    "HtmlInputElement",
-    "MediaQueryList"
-]
+features = ["HtmlElement", "HtmlInputElement", "MediaQueryList", "Clipboard"]
